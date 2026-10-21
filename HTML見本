@@ -1,0 +1,206 @@
+<h1>TRPGキャラクターシート作成メモ</h1>
+
+<form>
+
+<fieldset>
+<legend>基本情報</legend>
+
+<p>名前<br>
+<input type="text" size="40"></p>
+
+<p>通称・あだ名<br>
+<input type="text" size="40"></p>
+
+<p>性別<br>
+<input type="text" size="20"></p>
+
+<p>年齢<br>
+<input type="text" size="20"></p>
+
+<p>種族・出身<br>
+<input type="text" size="40"></p>
+
+<p>職業・クラス<br>
+<input type="text" size="40"></p>
+
+<p>外見の特徴<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+</fieldset>
+
+<fieldset>
+<legend>性格・価値観</legend>
+
+<p>性格<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+<p>長所<br>
+<textarea rows="3" cols="80"></textarea></p>
+
+<p>短所<br>
+<textarea rows="3" cols="80"></textarea></p>
+
+<p>好きなもの<br>
+<textarea rows="3" cols="80"></textarea></p>
+
+<p>嫌いなもの<br>
+<textarea rows="3" cols="80"></textarea></p>
+
+<p>恐れているもの<br>
+<textarea rows="3" cols="80"></textarea></p>
+
+<p>信念・モットー<br>
+<textarea rows="3" cols="80"></textarea></p>
+
+</fieldset>
+
+<fieldset>
+<legend>経歴</legend>
+
+<p>出生・生い立ち<br>
+<textarea rows="5" cols="80"></textarea></p>
+
+<p>家族構成<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+<p>重要な過去の出来事<br>
+<textarea rows="5" cols="80"></textarea></p>
+
+<p>現在の生活状況<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+</fieldset>
+
+<fieldset>
+<legend>人間関係</legend>
+
+<button type="button" onclick="addPerson()">
+＋ 相手を追加
+</button>
+
+<div id="people"></div>
+
+</fieldset>
+
+<fieldset>
+<legend>能力・技能</legend>
+
+<p>得意なこと<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+<p>苦手なこと<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+<p>戦闘スタイル<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+<p>特殊能力・魔法・才能<br>
+<textarea rows="5" cols="80"></textarea></p>
+
+</fieldset>
+
+<fieldset>
+<legend>目的と動機</legend>
+
+<p>キャラクターの目標<br>
+<textarea rows="5" cols="80"></textarea></p>
+
+<p>冒険に参加する理由<br>
+<textarea rows="5" cols="80"></textarea></p>
+
+<p>達成したいこと<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+<p>失いたくないもの<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+</fieldset>
+
+<fieldset>
+<legend>ロールプレイ指針</legend>
+
+<p>口調・話し方<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+<p>怒ったときの反応<br>
+<textarea rows="3" cols="80"></textarea></p>
+
+<p>困ったときの行動<br>
+<textarea rows="3" cols="80"></textarea></p>
+
+<p>よく言う台詞<br>
+<textarea rows="3" cols="80"></textarea></p>
+
+<p>プレイ時のキーワード<br>
+<textarea rows="4" cols="80"></textarea></p>
+
+</fieldset>
+
+<fieldset>
+<legend>その他</legend>
+
+<p>秘密・隠し事<br>
+<textarea rows="5" cols="80"></textarea></p>
+
+<p>GM向け設定メモ<br>
+<textarea rows="5" cols="80"></textarea></p>
+
+<p>自由記述<br>
+<textarea rows="8" cols="80"></textarea></p>
+
+</fieldset>
+
+</form>
+
+<script>
+function addPerson() {
+    const container = document.getElementById("people");
+
+    const person = document.createElement("div");
+
+    person.style.border = "1px solid #ccc";
+    person.style.padding = "10px";
+    person.style.margin = "10px 0";
+    person.style.borderRadius = "5px";
+
+    person.innerHTML = `
+        <h4>人物</h4>
+
+        <p>
+            相手<br>
+            <input type="text" size="40">
+        </p>
+
+        <p>
+            関係性<br>
+            <textarea rows="2" cols="80"></textarea>
+        </p>
+
+        <p>
+            出会い<br>
+            <textarea rows="3" cols="80"></textarea>
+        </p>
+
+        <p>
+            印象<br>
+            <textarea rows="3" cols="80"></textarea>
+        </p>
+
+        <p>
+            相手をどう思っているか<br>
+            <textarea rows="4" cols="80"></textarea>
+        </p>
+
+        <p>
+            エピソード・メモ<br>
+            <textarea rows="5" cols="80"></textarea>
+        </p>
+
+        <button type="button" onclick="this.parentElement.remove()">
+            この人物を削除
+        </button>
+    `;
+
+    container.appendChild(person);
+}
+</script>

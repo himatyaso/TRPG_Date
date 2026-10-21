@@ -1,0 +1,29 @@
+.audience-switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 3px;
+  border: 1px solid #deded3;
+  border-radius: 4px;
+  background: #eeede5;
+}
+.audience-switch button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 3px;
+  color: #72796f;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.audience-switch button[aria-pressed="true"] {
+  color: #242a26;
+  background: #fffefa;
+  box-shadow: 0 1px 3px #242a261a;
+}
+.audience-switch button:focus-visible {
+  outline: 2px solid #d6aa57;
+  outline-offset: 1px;
+}

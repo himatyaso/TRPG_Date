@@ -1,0 +1,1905 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2efe7">
+  <title>キャラクター書庫 | TRPG</title>
+  <link rel="stylesheet" href="view-mode.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f2efe7;
+      --surface: #fffefa;
+      --ink: #242a26;
+      --muted: #72796f;
+      --line: #deded3;
+      --green: #28634e;
+      --green-dark: #1c493a;
+      --coral: #c15d46;
+      --gold: #d6aa57;
+      --serif: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", Georgia, serif;
+      --sans: "Yu Gothic UI", "Meiryo", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: var(--paper); color: var(--ink); font-family: var(--sans); }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { position: sticky; top: 0; z-index: 30; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 34px; border-bottom: 1px solid #d9d8ce; background: rgba(255,254,250,.96); }
+    .brand { display: flex; align-items: center; gap: 12px; color: inherit; font-family: var(--serif); font-size: 18px; letter-spacing: 0; text-decoration: none; }
+    .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; color: #fffefa; background: var(--green); border-radius: 50%; font: 17px Georgia, serif; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .mode-switch { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 4px; background: #eeede5; }
+    .mode-switch button { min-height: 30px; padding: 0 11px; border: 0; border-radius: 3px; background: transparent; color: var(--muted); font-size: 12px; }
+    .mode-switch button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px #242a261a; }
+    .save-state { color: var(--muted); font-size: 12px; margin-right: 10px; }
+    .button { min-height: 38px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); padding: 0 13px; font-size: 13px; transition: background .15s, border-color .15s, transform .15s; }
+    .button:hover { border-color: #9eaa9e; background: #f8f8f1; }
+    .button:active { transform: translateY(1px); }
+    .button.primary { background: var(--green); border-color: var(--green); color: white; }
+    .button.primary:hover { background: var(--green-dark); }
+    .button.danger { color: #a54234; }
+    .button.icon { width: 36px; min-width: 36px; padding: 0; font-size: 17px; }
+    .layout { min-height: calc(100vh - 72px); display: grid; grid-template-columns: 250px minmax(0, 1fr) 310px; align-items: start; }
+    aside { position: sticky; top: 72px; z-index: 12; height: calc(100vh - 72px); overflow-y: auto; padding: 28px 18px; border-right: 1px solid #d9d8ce; background: #eae9df; }
+    .side-heading { display: flex; align-items: baseline; justify-content: space-between; margin: 0 2px 16px; }
+    .side-heading h1 { margin: 0; font: 21px var(--serif); }
+    .count { color: var(--muted); font-size: 12px; }
+    .search { width: 100%; height: 38px; padding: 0 11px; margin-bottom: 16px; border: 1px solid #d5d6cb; border-radius: 4px; outline: none; background: #f8f7f1; }
+    .search:focus, input:focus, textarea:focus { border-color: #70917d; box-shadow: 0 0 0 3px rgba(40,99,78,.1); }
+    .library { display: grid; gap: 5px; }
+    .character-row { width: 100%; padding: 11px 12px; text-align: left; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--ink); }
+    .character-row:hover { background: rgba(255,254,250,.65); }
+    .character-row.active { border-color: #d1d9cf; background: var(--surface); box-shadow: 0 2px 6px rgba(38,53,42,.04); }
+    .row-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .row-swatch { width: 10px; height: 10px; flex: 0 0 10px; border: 1px solid #00000018; border-radius: 50%; }
+    .row-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
+    .row-detail { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .empty-library { padding: 18px 10px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    main { min-width: 0; min-height: calc(100vh - 72px); padding: 35px clamp(22px, 3vw, 48px) 72px; background: var(--character-color, var(--paper)); }
+    .editor { position: relative; width: min(100%, 970px); margin: 0 auto; padding: 22px 22px 22px 60px; border: 1px solid #d6d9d1; border-radius: 3px; background-color: var(--surface); box-shadow: 0 8px 24px rgba(30,35,31,.16); animation: appear .28s ease-out; }
+    .editor::before { position: absolute; top: 22px; bottom: 22px; left: 17px; width: 22px; content: ""; pointer-events: none; background: radial-gradient(circle at center, var(--character-color) 0 7px, #c9ccc7 7.5px 9.5px, transparent 10px) 50% 0 / 22px 52px repeat-y; }
+    @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .editor-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding: 18px 20px 18px 16px; border-left: 4px solid var(--character-color); border-bottom: 1px solid rgba(91,132,157,.25); background: transparent; }
+    .eyebrow { margin: 0 0 8px; color: var(--character-color); font-size: 11px; font-weight: 700; letter-spacing: 1.2px; }
+    .editor-head h2 { margin: 0; font: 30px var(--serif); }
+    .editor-sub { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+    .editor-actions { display: flex; gap: 8px; }
+    .viewer { width: min(100%, 970px); margin: 0 auto; padding: 28px clamp(22px, 4vw, 48px); border: 1px solid #d6d9d1; border-radius: 3px; background: var(--surface); box-shadow: 0 8px 24px rgba(30,35,31,.16); }
+    .viewer-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin: 0 0 26px; padding: 0 0 20px; border-bottom: 2px solid color-mix(in srgb, var(--character-color) 45%, #d6d9d1); }
+    .viewer-heading { min-width: 0; }
+    .viewer-copy-actions { display: flex; flex: 0 0 auto; gap: 7px; }
+    .viewer-title h2 { margin: 0; overflow-wrap: anywhere; font: 32px/1.35 var(--serif); }
+    .viewer-title p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+    .viewer-section { padding: 22px 0; border-bottom: 1px solid #d9dedc; }
+    .viewer-section h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; font: 20px var(--serif); }
+    .viewer-section h3::before { width: 4px; height: 18px; content: ""; background: var(--character-color); }
+    .viewer-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; }
+    .viewer-field { min-width: 0; }
+    .viewer-field.full { grid-column: 1 / -1; }
+    .viewer-field dt { margin-bottom: 5px; color: var(--muted); font-size: 12px; }
+    .viewer-field dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; font-size: 14px; line-height: 1.8; }
+    .viewer-handout-scenario { display: grid; gap: 10px; margin-bottom: 16px; }
+    .viewer-handout-scenario:last-child { margin-bottom: 0; }
+    .viewer-handout-scenario > h4 { margin: 0; color: var(--green-dark); font: 16px var(--serif); }
+    .viewer-handout { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+    .viewer-handout h5 { margin: 0; font: 16px var(--serif); }
+    .viewer-handout p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+    .viewer-handout-secret { display: grid; gap: 8px; padding: 10px; border: 1px solid #e5c4b8; border-radius: 3px; background: #fff8f5; }
+    .viewer-handout-secret > strong { color: #8e4034; font-size: 12px; }
+    .viewer-empty { color: #a3a59d; font-size: 13px; }
+    .viewer-person { padding: 14px 0; border-top: 1px solid #e0e2dc; }
+    .viewer-relationship-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+    .viewer-person-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .viewer-person h4 { min-width: 0; margin: 0; overflow-wrap: anywhere; font: 17px var(--serif); }
+    .relationship-portrait-frame { display: block; flex: 0 0 54px; width: 54px; height: 72px; aspect-ratio: auto; border-color: var(--line); border-radius: 3px; background-color: #f6f5ef; }
+    .relationship-portrait-frame img { object-fit: contain; }
+    .relation-portrait { position: static; width: 100%; height: auto; aspect-ratio: 3 / 4; flex-basis: auto; margin: 0; }
+    .profile-rail { position: sticky; top: 90px; display: grid; gap: 14px; max-height: calc(100vh - 108px); overflow-y: auto; margin: 18px 18px 18px 0; padding: 19px; border: 1px solid #deded3; border-top: 3px solid var(--character-color, #888888); border-radius: 5px; background: #fffefa; box-shadow: 0 8px 26px rgba(38,53,42,.07); }
+    .profile-rail[hidden] { display: none; }
+    .profile-label { margin: 0; color: var(--character-color, #888888); font-size: 10px; font-weight: 700; letter-spacing: 1.2px; }
+    .portrait-frame { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid color-mix(in srgb, var(--character-color, #888888) 35%, #deded3); border-radius: 3px; background: linear-gradient(145deg, color-mix(in srgb, var(--character-color, #888888) 16%, #fffefa), #f2efe7); }
+    .portrait-frame.has-portrait { background-color: var(--character-color, #888888); background-image: none; }
+    .portrait-frame.pattern-lines.has-portrait { background-image: repeating-linear-gradient(135deg, transparent 0 12px, color-mix(in srgb, var(--pattern-ink, #ffffff) 82%, transparent) 12px 14px); }
+    .portrait-frame.pattern-dots.has-portrait { background-image: radial-gradient(circle, color-mix(in srgb, var(--pattern-ink, #ffffff) 88%, transparent) 1.8px, transparent 2.2px), radial-gradient(circle, color-mix(in srgb, var(--pattern-ink, #ffffff) 88%, transparent) 1.8px, transparent 2.2px); background-size: 16px 16px; background-position: 0 0, 8px 8px; }
+    .portrait-frame.pattern-grid.has-portrait { background-image: linear-gradient(color-mix(in srgb, var(--pattern-ink, #ffffff) 76%, transparent) 1.5px, transparent 1.5px), linear-gradient(90deg, color-mix(in srgb, var(--pattern-ink, #ffffff) 76%, transparent) 1.5px, transparent 1.5px); background-size: 18px 18px; }
+    .portrait-frame.pattern-diagonal-grid.has-portrait { background-image: repeating-linear-gradient(45deg, transparent 0 12px, color-mix(in srgb, var(--pattern-ink, #ffffff) 76%, transparent) 12px 13.5px, transparent 13.5px 24px), repeating-linear-gradient(-45deg, transparent 0 12px, color-mix(in srgb, var(--pattern-ink, #ffffff) 76%, transparent) 12px 13.5px, transparent 13.5px 24px); }
+    .portrait-frame.pattern-circles.has-portrait { background-image: repeating-radial-gradient(circle at 50% 50%, transparent 0 12px, color-mix(in srgb, var(--pattern-ink, #ffffff) 80%, transparent) 13px 14.5px); background-position: center; background-size: 100% 100%; background-repeat: no-repeat; }
+    .portrait-frame.pattern-big-circle.has-portrait { background-color: var(--pattern-ink, #ffffff); background-image: radial-gradient(circle at center, var(--character-color, #888888) 0 63%, transparent 64%); background-position: center; background-size: 100% 100%; background-repeat: no-repeat; }
+    .portrait-frame.pattern-big-circle-inverted.has-portrait { background-color: var(--character-color, #888888); background-image: radial-gradient(circle at center, var(--pattern-ink, #ffffff) 0 63%, transparent 64%); background-position: center; background-size: 100% 100%; background-repeat: no-repeat; }
+    .portrait-frame.pattern-custom.has-portrait { background-color: var(--character-color, #888888); }
+    .portrait-frame img { width: 100%; height: 100%; object-fit: contain; transition: opacity .7s ease; }
+    .portrait-gallery { display: flex; gap: 8px; overflow-x: auto; padding: 2px 1px 5px; }
+    .portrait-thumb { flex: 0 0 54px; width: 54px; height: 70px; overflow: hidden; padding: 2px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
+    .portrait-thumb.active { border: 2px solid var(--character-color, #888888); }
+    .portrait-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .portrait-placeholder { display: grid; justify-items: center; gap: 10px; padding: 20px; color: var(--character-color, #888888); text-align: center; }
+    .portrait-placeholder span { font: 54px var(--serif); opacity: .62; }
+    .portrait-placeholder small { color: var(--muted); font: 12px var(--sans); line-height: 1.6; }
+    .profile-rail h2 { overflow-wrap: anywhere; margin: 0; font: 24px/1.4 var(--serif); }
+    .profile-class { margin: -8px 0 0; color: var(--muted); font-size: 12px; }
+    .profile-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    .profile-actions .button { width: 100%; }
+    .profile-actions input[type="file"] { display: none; }
+    .background-picker { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; }
+    .background-picker label { color: var(--muted); font-size: 12px; }
+    .background-picker select { min-width: 0; height: 36px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--ink); padding: 0 8px; font: inherit; font-size: 12px; }
+    .profile-meta { padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; margin-top: 14px; }
+    .section { min-width: 0; padding: 20px 8px; border-bottom: 1px solid rgba(91,132,157,.25); background: transparent; }
+    .section.wide { grid-column: 1 / -1; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
+    .section-heading h3 { margin: 0; }
+    .field-visibility { position: relative; flex: 0 0 auto; }
+    .field-visibility summary { list-style: none; cursor: pointer; color: var(--muted); font-size: 11px; }
+    .field-visibility summary::-webkit-details-marker { display: none; }
+    .field-visibility summary::before { content: "☑"; margin-right: 5px; color: var(--character-color); }
+    .visibility-options { position: absolute; z-index: 4; top: calc(100% + 8px); right: 0; display: grid; gap: 7px; width: max-content; min-width: 190px; max-width: min(280px, 75vw); max-height: 300px; overflow: auto; padding: 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); box-shadow: 0 6px 18px rgba(30,35,31,.14); }
+    .visibility-options label { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: 12px; cursor: pointer; }
+    .visibility-options input { margin: 0; accent-color: var(--green); }
+    .section h3 { display: flex; align-items: center; gap: 9px; margin: 0 0 17px; font: 18px var(--serif); }
+    .section h3::before { width: 3px; height: 16px; content: ""; background: var(--character-color); }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 18px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { display: block; margin-bottom: 6px; color: #555e56; font-size: 12px; }
+    .writing-surface { width: 100%; background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 20px, rgba(55,103,136,.62) 20px, rgba(55,103,136,.62) 21px, transparent 21px, transparent 27px); background-size: 100% 27px; }
+    .writing-surface.single { height: 27px; }
+    .writing-surface.multiple { min-height: 81px; }
+    .field input:not(.color-picker), .field textarea, .relation input, .relation textarea { display: block; width: 100%; border: 0; border-radius: 0; outline: none; background: transparent; box-shadow: none; color: var(--ink); padding: 0 2px; font-size: 13px; line-height: 27px; resize: vertical; }
+    .field select { display: block; width: 100%; height: 39px; border: 1px solid #d8d9cf; border-radius: 3px; outline: none; background: var(--surface); color: var(--ink); padding: 0 10px; font-size: 13px; }
+    .profession-entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
+    .profession-add { grid-template-columns: minmax(0, 1fr) auto auto; }
+    .profession-add .button { white-space: nowrap; }
+    .field input:not(.color-picker), .relation-fields input { height: 27px; }
+    .field textarea, .relation textarea { min-height: 81px; line-height: 27px; }
+    .field .secret-toggle { display: inline-flex; width: auto; align-items: center; gap: 7px; }
+    .field .secret-toggle input { display: inline-block; width: 16px; height: 16px; padding: 0; }
+    .writing-surface:focus-within { box-shadow: inset 0 -1px var(--green); }
+    .color-entry { display: grid; grid-template-columns: minmax(0, 1fr) 48px; gap: 8px; }
+    .field .color-picker { width: 48px; height: 39px; padding: 4px; cursor: pointer; }
+    .field-hint { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .people-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+    .people-head h3 { margin: 0; }
+    .relation-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .relation { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+    .relation-top { display: block; margin-bottom: 12px; }
+    .relation-controls { display: flex; align-items: center; gap: 7px; }
+    .relation-identity { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; gap: 12px; margin-bottom: 12px; }
+    .relation-identity-fields { display: grid; gap: 10px; min-width: 0; }
+    .relation-identity .relation-field { min-width: 0; }
+    .relation-identity .relation-field > label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; }
+    .relation-identity .relation-field input { width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); font-size: 12px; }
+    .relation-identity .relation-field select { width: 100%; min-width: 0; height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--ink); font: inherit; font-size: 12px; }
+    .relation-fields { display: grid; gap: 10px; }
+    .relation-fields label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; }
+    .relation textarea { min-height: 58px; }
+    .relation-empty { padding: 17px 0; color: var(--muted); font-size: 12px; }
+    .memory-list { display: grid; gap: 12px; }
+    .memory-entry { display: grid; grid-template-columns: minmax(120px, 180px) minmax(0, 1fr) auto; align-items: start; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 4px; }
+    .memory-image { display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border: 1px dashed #bfc6bb; border-radius: 3px; background: #f6f5ef; color: var(--muted); font-size: 12px; }
+    .memory-image img { width: 100%; height: 100%; object-fit: cover; }
+    .memory-image input { display: none; }
+    .memory-note { min-width: 0; }
+    .memory-note textarea { width: 100%; min-height: 92px; padding: 8px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--ink); font-size: 13px; line-height: 1.7; resize: vertical; }
+    .memory-entry .button { white-space: nowrap; }
+    .memory-people-picker { position: relative; margin-top: 9px; }
+    .memory-people-picker summary { display: inline-flex; min-height: 36px; align-items: center; padding: 0 11px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 12px; cursor: pointer; list-style: none; }
+    .memory-people-picker summary::-webkit-details-marker { display: none; }
+    .memory-people-picker summary::after { content: "▾"; margin-left: 9px; color: var(--muted); }
+    .memory-people-picker[open] summary::after { content: "▴"; }
+    .memory-people-options { position: absolute; z-index: 6; top: calc(100% + 5px); left: 0; display: grid; gap: 8px; width: max-content; min-width: 210px; max-width: min(320px, 75vw); max-height: 220px; overflow: auto; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); box-shadow: 0 6px 18px rgba(30,35,31,.14); }
+    .memory-people-options label { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: start; gap: 7px; width: 100%; min-width: 0; margin: 0; color: var(--ink); font-size: 12px; cursor: pointer; }
+    .field .memory-people-options input { display: block; width: 15px; height: 15px; min-width: 15px; margin: 1px 0 0; padding: 0; accent-color: var(--green); }
+    .memory-people-options .field-hint { margin: 0; }
+    .scenario-picker { position: relative; display: inline-block; max-width: 100%; }
+    .scenario-picker summary { display: inline-flex; min-height: 36px; align-items: center; max-width: 100%; padding: 0 11px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 12px; cursor: pointer; list-style: none; }
+    .scenario-picker summary::-webkit-details-marker { display: none; }
+    .scenario-picker summary::after { content: "▾"; margin-left: 9px; color: var(--muted); }
+    .scenario-picker[open] summary::after { content: "▴"; }
+    .scenario-options { position: absolute; z-index: 6; top: calc(100% + 5px); left: 0; display: grid; gap: 8px; width: max-content; min-width: 240px; max-width: min(360px, 78vw); max-height: 240px; overflow: auto; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); box-shadow: 0 6px 18px rgba(30,35,31,.14); }
+    .scenario-options label { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: start; gap: 7px; width: 100%; min-width: 0; margin: 0; color: var(--ink); font-size: 12px; cursor: pointer; }
+    .field .scenario-options input { display: block; width: 15px; height: 15px; min-width: 15px; margin: 1px 0 0; padding: 0; accent-color: var(--green); }
+    .scenario-options .field-hint { margin: 0; }
+    .scenario-add-panel { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; max-width: 480px; margin-top: 8px; }
+    .scenario-add-panel input { min-width: 0; height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--ink); font-size: 12px; }
+    .scenario-add-panel .button { min-height: 36px; padding: 0 9px; }
+    .scenario-handouts { display: grid; gap: 10px; }
+    .scenario-handout-group { display: grid; gap: 10px; padding: 13px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,254,250,.7); }
+    .linked-scenario-handouts { display: grid; gap: 7px; padding: 10px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); font-size: 12px; }
+    .linked-scenario-handouts label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+    .linked-scenario-handouts label span { display: grid; gap: 3px; }
+    .linked-scenario-handouts small { color: var(--muted); line-height: 1.6; white-space: pre-wrap; }
+    .scenario-handout-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .scenario-handout-heading h4 { margin: 0; overflow-wrap: anywhere; font: 15px var(--serif); }
+    .scenario-handout-card { display: grid; gap: 11px; padding: 12px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
+    .scenario-handout-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 11px; }
+    .scenario-handout-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+    .scenario-handout-field { min-width: 0; }
+    .scenario-handout-field.full { grid-column: 1 / -1; }
+    .scenario-handout-field label { display: block; margin-bottom: 5px; color: #555e56; font-size: 11px; }
+    .scenario-handout-field input,.scenario-handout-field select,.scenario-handout-field textarea { width: 100%; min-width: 0; border: 1px solid #d8d9cf; border-radius: 3px; background: var(--surface); color: var(--ink); font: inherit; font-size: 12px; }
+    .scenario-handout-field input,.scenario-handout-field select { height: 36px; padding: 0 8px; }
+    .scenario-handout-field textarea { min-height: 72px; padding: 8px; line-height: 1.7; resize: vertical; }
+    .scenario-handout-secret { padding: 11px; border: 1px solid #e5c4b8; border-radius: 3px; background: #fff8f5; }
+    .scenario-handout-secret h5 { margin: 0 0 10px; color: #8e4034; font: 12px var(--sans); }
+    .scenario-handouts .field-hint { margin: 0; }
+    .scenario-picker { position: relative; display: inline-block; max-width: 100%; }
+    .scenario-picker summary { display: inline-flex; min-height: 36px; align-items: center; max-width: 100%; padding: 0 11px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 12px; cursor: pointer; list-style: none; }
+    .scenario-picker summary::-webkit-details-marker { display: none; }
+    .scenario-picker summary::after { content: "▾"; margin-left: 9px; color: var(--muted); }
+    .scenario-picker[open] summary::after { content: "▴"; }
+    .scenario-options { position: absolute; z-index: 6; top: calc(100% + 5px); left: 0; display: grid; gap: 8px; width: max-content; min-width: 240px; max-width: min(360px, 78vw); max-height: 240px; overflow: auto; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); box-shadow: 0 6px 18px rgba(30,35,31,.14); }
+    .scenario-options label { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: start; gap: 7px; width: 100%; min-width: 0; margin: 0; color: var(--ink); font-size: 12px; cursor: pointer; }
+    .field .scenario-options input { display: block; width: 15px; height: 15px; min-width: 15px; margin: 1px 0 0; padding: 0; accent-color: var(--green); }
+    .scenario-options .field-hint { margin: 0; }
+    .scenario-add-panel { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; max-width: 480px; margin-top: 8px; }
+    .scenario-add-panel input { min-width: 0; height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--ink); font-size: 12px; }
+    .scenario-add-panel .button { min-height: 36px; padding: 0 9px; }
+    .secret-toggle { display: inline-flex; min-height: 32px; align-items: center; gap: 7px; padding: 0 9px; border: 1px solid #e5c4b8; border-radius: 4px; background: #fff8f5; color: #8e4034; font-size: 12px; white-space: nowrap; cursor: pointer; }
+    .secret-toggle input { width: 16px; height: 16px; margin: 0; accent-color: #a84e40; }
+    .secret-badge { display: inline-block; margin-left: 7px; padding: 2px 5px; border: 1px solid #e5c4b8; border-radius: 3px; color: #9a4d3f; font: 10px var(--sans); vertical-align: middle; }
+    .viewer-memories { display: grid; gap: 16px; }
+    .viewer-memory { display: grid; grid-template-columns: minmax(120px, 260px) minmax(0, 1fr); align-items: start; gap: 16px; }
+    .viewer-memory img { display: block; width: 100%; max-height: 320px; object-fit: contain; border: 1px solid var(--line); border-radius: 3px; background: #f6f5ef; }
+    .viewer-memory p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.8; }
+    .viewer-memory-people, .viewer-linked-character { color: var(--muted); font-size: 12px; }
+    .viewer-memory-people { grid-column: 1 / -1; }
+    .viewer-linked-character { margin: -5px 0 8px; }
+    .relation-fields select { width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--ink); font: inherit; font-size: 12px; }
+    .welcome { width: min(100%, 700px); margin: 12vh auto 0; text-align: center; animation: appear .35s ease-out; }
+    .welcome-mark { width: 58px; height: 58px; display: grid; place-items: center; margin: 0 auto 20px; border: 1px solid #c8c9b8; border-radius: 50%; color: var(--green); font: 27px var(--serif); }
+    .welcome h2 { margin: 0; font: 30px var(--serif); }
+    .welcome p { margin: 12px 0 23px; color: var(--muted); font-size: 13px; line-height: 1.9; }
+    .toast { position: fixed; right: 24px; bottom: 22px; z-index: 5; padding: 11px 15px; border-radius: 4px; background: var(--green-dark); color: white; font-size: 12px; box-shadow: 0 5px 20px #26352a30; animation: appear .18s ease-out; }
+    .toast[hidden] { display: none; }
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .profile-rail { position: static; grid-column: 2; grid-row: 2; max-height: none; margin: 0 20px 28px; }
+      .portrait-frame { max-height: 440px; }
+    }
+    @media (max-width: 800px) {
+      .topbar { height: auto; min-height: 64px; flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+      .brand { font-size: 15px; }
+      .save-state { display: none; }
+      .top-actions { flex-wrap: wrap; gap: 6px; }
+      .mode-switch button { padding: 0 8px; }
+      .top-actions .button { min-height: 35px; padding: 0 9px; font-size: 12px; }
+      .layout { grid-template-columns: 1fr; }
+      aside { top: 64px; height: auto; max-height: 42vh; padding: 17px 16px 14px; border-right: 0; border-bottom: 1px solid #d9d8ce; }
+      .side-heading { margin-bottom: 10px; }
+      .search { margin-bottom: 9px; }
+      .library { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 3px; }
+      .character-row { flex: 0 0 175px; width: 175px; }
+      .empty-library { padding: 8px 4px; }
+      main { grid-row: 3; padding: 24px 18px 56px; }
+      .profile-rail { grid-column: 1; grid-row: 2; margin: 18px 18px 0; }
+      .editor-head { align-items: flex-start; flex-direction: column; gap: 14px; }
+    }
+    @media (max-width: 560px) {
+      .brand-mark { width: 26px; height: 26px; }
+      .brand { gap: 7px; font-size: 13px; }
+      .top-actions .button { padding: 0 7px; font-size: 11px; }
+      .viewer { padding: 20px 17px; }
+      .viewer-fields { grid-template-columns: 1fr; }
+      .viewer-field.full { grid-column: auto; }
+      .viewer-title h2 { font-size: 26px; }
+      .editor { padding: 12px 12px 12px 48px; }
+      .sections, .fields, .relation-list { grid-template-columns: 1fr; }
+      .viewer-relationship-list { grid-template-columns: 1fr; }
+      .section.wide, .field.full { grid-column: auto; }
+      .editor-head h2 { font-size: 26px; }
+      .section { padding: 20px 0; }
+      .welcome { margin-top: 8vh; }
+      .scenario-handout-fields { grid-template-columns: 1fr; }
+      .scenario-handout-field.full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="TRPG管理室ホーム"><span class="brand-mark" aria-hidden="true">✦</span><span>TRPG キャラクター書庫</span></a>
+    <div class="top-actions">
+      <div class="audience-switch" role="group" aria-label="表示モード">
+        <button type="button" data-audience-mode="public" aria-pressed="false">公開ビュー</button>
+        <button type="button" data-audience-mode="private" aria-pressed="true">非公開ビュー</button>
+      </div>
+      <span class="save-state" id="saveState" aria-live="polite">このブラウザーに保存されます</span>
+      <a class="button" href="TRPGシナリオ管理.html">シナリオ一覧</a>
+      <div class="mode-switch" role="group" aria-label="画面モード">
+        <button id="viewModeButton" type="button" aria-pressed="true">閲覧</button>
+        <button id="editModeButton" type="button" aria-pressed="false">編集</button>
+      </div>
+      <button class="button" id="importButton" type="button" title="JSONファイルから読み込む">読み込み</button>
+      <input id="importFile" type="file" accept=".json,application/json" hidden>
+      <button class="button" id="exportButton" type="button" title="選択中のキャラクターをJSONで保存" disabled>書き出し</button>
+      <button class="button primary" id="newButton" type="button">＋ 新規作成</button>
+    </div>
+  </header>
+  <div class="layout">
+    <aside>
+      <div class="side-heading"><h1>キャラクター</h1><span class="count" id="count">0人</span></div>
+      <input class="search" id="searchName" type="search" placeholder="名前で検索" aria-label="名前で検索">
+      <select class="search" id="searchProfession" aria-label="職業で検索">
+        <option value="">すべての職業</option>
+      </select>
+      <nav class="library" id="library" aria-label="キャラクター一覧"></nav>
+    </aside>
+    <main id="main"></main>
+    <aside class="profile-rail" id="profileRail" aria-label="選択中キャラクターのプロフィール" hidden></aside>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <script>
+    "use strict";
+
+    const groups = [
+      { title: "基本情報", fields: [
+        ["name", "名前", "text"], ["nickname", "通称・あだ名", "text"], ["gender", "性別", "text"], ["age", "年齢", "text"], ["origin", "種族・出身", "text"], ["profession", "職業", "profession"], ["class", "クラス", "text"], ["themeColor", "テーマカラー", "color"], ["appearance", "外見の特徴", "area"]
+      ]},
+      { title: "性格・価値観", fields: [
+        ["personality", "性格", "area"], ["strengths", "長所", "area"], ["weaknesses", "短所", "area"], ["likes", "好きなもの", "area"], ["dislikes", "嫌いなもの", "area"], ["fears", "恐れているもの", "area"], ["belief", "信念・モットー", "area"]
+      ]},
+      { title: "経歴", fields: [
+        ["backstory", "出生・生い立ち", "area"], ["family", "家族構成", "area"], ["pastEvents", "重要な過去の出来事", "area"], ["currentLife", "現在の生活状況", "area"], ["passedScenarios", "通過シナリオ", "scenarios"], ["scenarioHandouts", "ハンドアウト", "handouts"]
+      ]},
+      { title: "能力・技能", fields: [
+        ["talents", "得意なこと", "area"], ["limitations", "苦手なこと", "area"], ["combatStyle", "戦闘スタイル", "area"], ["specialAbilities", "特殊能力・魔法・才能", "area"]
+      ]},
+      { title: "目的と動機", fields: [
+        ["goal", "キャラクターの目標", "area"], ["adventureReason", "冒険に参加する理由", "area"], ["ambition", "達成したいこと", "area"], ["cannotLose", "失いたくないもの", "area"]
+      ]},
+      { title: "ロールプレイ指針", fields: [
+        ["voice", "口調・話し方", "area"], ["anger", "怒ったときの反応", "area"], ["trouble", "困ったときの行動", "area"], ["catchphrase", "よく言う台詞", "area"], ["keywords", "プレイ時のキーワード", "area"]
+      ]},
+      { title: "その他", fields: [
+        ["secret", "秘密・隠し事", "area"], ["gmNotes", "GM向け設定メモ", "area"], ["notes", "自由記述", "area"]
+      ]},
+      { title: "思い出", fields: [
+        ["memories", "画像とメモ", "memories"]
+      ]}
+    ];
+
+    const databaseName = "trpg-character-library";
+    const npcDatabaseName = "trpg-npc-library";
+    const scenarioStorageKey = "trpg-npc-scenarios";
+    const scenarioRecordsStorageKey = "trpg-scenarios";
+    const otherCharacterStorageKey = "trpg-pc-character-register";
+    const scenarioSyncSignalKey = "trpg-character-scenarios-updated";
+    let database;
+    let characters = [];
+    let scenarioRecords = [];
+    let npcCharacters = [];
+    let otherCharacters = [];
+    let professionOptions = [];
+    let addingProfession = false;
+    let addingScenario = false;
+    let scenarioOptions = [];
+    let screenMode = "view";
+    let openVisibilityGroup = null;
+    try {
+      const storedProfessions = JSON.parse(localStorage.getItem("trpg-profession-options") || "[]");
+      if (Array.isArray(storedProfessions)) professionOptions = storedProfessions.filter(value => typeof value === "string" && value.trim());
+    } catch {}
+    try {
+      const storedScenarios = JSON.parse(localStorage.getItem(scenarioStorageKey) || "[]");
+      if (Array.isArray(storedScenarios)) scenarioOptions = [...new Set(storedScenarios.filter(value => typeof value === "string" && value.trim()))];
+    } catch {}
+    let currentId = null;
+    let saveTimer;
+    let toastTimer;
+    let portraitSlideTimer;
+    let portraitFadeTimer;
+    let portraitTransitionToken = 0;
+    let portraitSlideshowCharacterId = null;
+    const library = document.getElementById("library");
+    const main = document.getElementById("main");
+    const profileRail = document.getElementById("profileRail");
+    const saveState = document.getElementById("saveState");
+    const count = document.getElementById("count");
+
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(databaseName, 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("characters", { keyPath: "id" });
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function readOtherCharacters() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(otherCharacterStorageKey) || "[]");
+        return Array.isArray(stored) ? stored.filter(item => item && typeof item.id === "string" && typeof item.name === "string") : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function readAll() {
+      return new Promise((resolve, reject) => {
+        const request = database.transaction("characters", "readonly").objectStore("characters").getAll();
+        request.onsuccess = () => resolve(request.result.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)));
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function readNpcCharacters() {
+      let legacyNpcs = [];
+      if (typeof indexedDB.databases === "function") {
+        const databases = await indexedDB.databases();
+        if (databases.some(item => item.name === npcDatabaseName)) {
+          const npcDatabase = await new Promise((resolve, reject) => {
+            const request = indexedDB.open(npcDatabaseName);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+          if (npcDatabase.objectStoreNames.contains("npcs")) {
+            try {
+              legacyNpcs = await new Promise((resolve, reject) => {
+                const request = npcDatabase.transaction("npcs", "readonly").objectStore("npcs").getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+              });
+            } finally {
+              npcDatabase.close();
+            }
+          } else {
+            npcDatabase.close();
+          }
+        }
+      }
+      const byId = new Map(legacyNpcs.filter(npc => npc && typeof npc.id === "string").map(npc => [npc.id, npc]));
+      scenarioRecords.forEach(scenario => {
+        (Array.isArray(scenario.npcs) ? scenario.npcs : []).forEach(npc => {
+          if (!npc || typeof npc.id !== "string") return;
+          byId.set(npc.id, {
+            ...npc,
+            fields: { ...(npc.fields || {}), scenario: npc.fields?.scenario || scenario.title },
+          });
+        });
+      });
+      return [...byId.values()].sort((left, right) => (right.updatedAt || 0) - (left.updatedAt || 0));
+    }
+
+    function writeCharacter(character) {
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction("characters", "readwrite");
+        transaction.objectStore("characters").put(character);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(transaction.error);
+      });
+    }
+
+    function removeCharacter(id) {
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction("characters", "readwrite");
+        transaction.objectStore("characters").delete(id);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error);
+      });
+    }
+
+    function newCharacter() {
+      const fields = Object.fromEntries(groups.flatMap(group => group.fields.map(([key]) => [key, ""])));
+      fields.themeColor = "#888888";
+      fields.memories = [];
+      fields.passedScenarios = [];
+      fields.scenarioHandouts = {};
+      fields.scenarioHandoutRefs = [];
+      const fieldVisibility = Object.fromEntries(groups.flatMap(group => group.fields.map(([key]) => [key, true])));
+      return { id: crypto.randomUUID(), fields, fieldVisibility, relationships: [], createdAt: Date.now(), updatedAt: Date.now() };
+    }
+
+    function pruneProfessionOptions() {
+      const usedProfessions = new Set(characters.map(character => character.fields?.profession).filter(Boolean));
+      const remaining = professionOptions.filter(profession => usedProfessions.has(profession));
+      if (remaining.length === professionOptions.length) return;
+      professionOptions = remaining;
+      try {
+        localStorage.setItem("trpg-profession-options", JSON.stringify(professionOptions));
+      } catch {
+        showToast("職業候補をこのブラウザーに保存できませんでした");
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>\"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[character]));
+    }
+
+    function readScenarioRecords() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(scenarioRecordsStorageKey) || "[]");
+        return Array.isArray(stored) ? stored.filter(item => item && typeof item.id === "string" && typeof item.title === "string") : [];
+      } catch (error) {
+        showToast(`シナリオのハンドアウトを読み込めませんでした: ${error.message}`);
+        return [];
+      }
+    }
+
+    function scenarioHandoutId(handout, index) {
+      return handout.id || `legacy-${index}`;
+    }
+
+    function scenarioHandoutKey(scenario, handout, index) {
+      return `${scenario.id}:${scenarioHandoutId(handout, index)}`;
+    }
+
+    function activeCharacter() { return characters.find(character => character.id === currentId) || null; }
+    async function syncReciprocalRelationship(character, person, previousCharacterId = "") {
+      const writes = [];
+      const removeCounterpart = targetId => {
+        const target = characters.find(item => item.id === targetId);
+        if (!target) return;
+        const before = target.relationships.length;
+        target.relationships = target.relationships.filter(item => item.reciprocalRelationshipId !== person.id);
+        if (target.relationships.length !== before) writes.push(writeCharacter(target));
+      };
+      if (previousCharacterId && previousCharacterId !== person.characterId) removeCounterpart(previousCharacterId);
+      if (person.reciprocalCharacterId && person.reciprocalCharacterId !== person.characterId) removeCounterpart(person.reciprocalCharacterId);
+      const target = characters.find(item => item.id === person.characterId);
+      if (!target || target.id === character.id) {
+        delete person.characterId;
+        delete person.reciprocalCharacterId;
+        delete person.reciprocalRelationshipId;
+      } else {
+        let counterpart = target.relationships.find(item => item.reciprocalRelationshipId === person.id);
+        if (!counterpart) {
+          counterpart = { id: crypto.randomUUID(), name: character.fields.name || "名前未設定", relationship: "", meeting: "", impression: "", feelings: "", memo: "", reciprocalAuto: true };
+          target.relationships.push(counterpart);
+        }
+        counterpart.name = character.fields.name || "名前未設定";
+        counterpart.characterId = character.id;
+        counterpart.reciprocalCharacterId = character.id;
+        counterpart.reciprocalRelationshipId = person.id;
+        person.reciprocalCharacterId = target.id;
+        person.reciprocalRelationshipId = counterpart.id;
+        writes.push(writeCharacter(target));
+      }
+      writes.push(writeCharacter(character));
+      await Promise.all(writes);
+    }
+
+    async function updateReciprocalNames(character) {
+      const writes = [];
+      for (const person of character.relationships) {
+        if (person.reciprocalAuto || !person.reciprocalCharacterId || !person.reciprocalRelationshipId) continue;
+        const target = characters.find(item => item.id === person.reciprocalCharacterId);
+        const counterpart = target?.relationships.find(item => item.id === person.reciprocalRelationshipId);
+        if (!counterpart) continue;
+        counterpart.name = character.fields.name || "名前未設定";
+        writes.push(writeCharacter(target));
+      }
+      await Promise.all(writes);
+    }
+
+    async function removeReciprocalRelationships(character) {
+      const writes = [];
+      for (const person of character.relationships) {
+        const target = characters.find(item => item.id === person.reciprocalCharacterId);
+        if (!target || !person.reciprocalRelationshipId) continue;
+        const before = target.relationships.length;
+        target.relationships = target.relationships.filter(item => item.id !== person.reciprocalRelationshipId);
+        if (target.relationships.length !== before) writes.push(writeCharacter(target));
+      }
+      await Promise.all(writes);
+    }
+    function characterColor(character) {
+      const color = character?.fields?.themeColor || "";
+      return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#888888";
+    }
+
+    function getPortraitBackgroundSettings(character, portraitIndex) {
+      const fields = character.fields || {};
+      const portraits = getPortraits(fields);
+      if (!Array.isArray(fields.portraitBackgrounds)) {
+        fields.portraitBackgrounds = portraits.map(() => ({ pattern: "solid", patternColor: "white", customBackground: "", fit: "cover" }));
+        if (portraits.length) {
+          const legacyIndex = Math.min(Math.max(Number(fields.activePortraitIndex) || 0, 0), portraits.length - 1);
+          fields.portraitBackgrounds[legacyIndex] = {
+            pattern: fields.portraitBackground || "solid",
+            patternColor: fields.portraitPatternColor || "white",
+            customBackground: fields.customPortraitBackground || "",
+            fit: fields.customPortraitBackgroundFit || "cover"
+          };
+        }
+        delete fields.portraitBackground;
+        delete fields.portraitPatternColor;
+        delete fields.customPortraitBackground;
+        delete fields.customPortraitBackgroundFit;
+      }
+      while (fields.portraitBackgrounds.length < portraits.length) {
+        fields.portraitBackgrounds.push({ pattern: "solid", patternColor: "white", customBackground: "", fit: "cover" });
+      }
+      return fields.portraitBackgrounds[portraitIndex] || { pattern: "solid", patternColor: "white", customBackground: "", fit: "cover" };
+    }
+
+    function renderProfile(character) {
+      if (!character) {
+        profileRail.hidden = true;
+        profileRail.innerHTML = "";
+        return;
+      }
+      const fields = character.fields || {};
+      const portraits = getPortraits(fields);
+      const activeIndex = portraits.length ? Math.min(Math.max(Number(fields.activePortraitIndex) || 0, 0), portraits.length - 1) : 0;
+      const portrait = portraits[activeIndex] || "";
+      const backgroundSettings = getPortraitBackgroundSettings(character, activeIndex);
+      const backgroundPattern = ["solid", "lines", "dots", "grid", "diagonal-grid", "circles", "big-circle", "big-circle-inverted", "custom"].includes(backgroundSettings.pattern) ? backgroundSettings.pattern : "solid";
+      const patternColor = backgroundSettings.patternColor === "black" ? "black" : "white";
+      const customBackground = typeof backgroundSettings.customBackground === "string" && backgroundSettings.customBackground.startsWith("data:image/") ? backgroundSettings.customBackground : "";
+      const customBackgroundFit = ["cover", "contain", "tile"].includes(backgroundSettings.fit) ? backgroundSettings.fit : "cover";
+      const editing = screenMode === "edit";
+      profileRail.hidden = false;
+      profileRail.style.setProperty("--character-color", characterColor(character));
+      profileRail.style.setProperty("--pattern-ink", patternColor === "black" ? "#111111" : "#ffffff");
+      profileRail.innerHTML = `
+        <p class="profile-label">CHARACTER PROFILE</p>
+        <div class="portrait-frame ${portrait ? `has-portrait pattern-${backgroundPattern}` : ""}">${portrait ? `<img src="${escapeHtml(portrait)}" alt="${escapeHtml(fields.name || "名前未設定")}の立ち絵 ${activeIndex + 1}">` : `<div class="portrait-placeholder"><span aria-hidden="true">✦</span><small>立ち絵を設定すると<br>ここに表示されます</small></div>`}</div>
+        ${portraits.length > 1 ? `<div class="portrait-gallery" aria-label="立ち絵一覧">${portraits.map((image, index) => `<button class="portrait-thumb ${index === activeIndex ? "active" : ""}" type="button" data-portrait-index="${index}" aria-label="立ち絵 ${index + 1}を表示" aria-pressed="${index === activeIndex}"><img src="${escapeHtml(image)}" alt=""></button>`).join("")}</div>` : ""}
+        ${editing ? `<div class="background-picker"><label for="portraitBackground">背景</label><select id="portraitBackground" aria-label="立ち絵の背景パターン"><option value="solid" ${backgroundPattern === "solid" ? "selected" : ""}>ベタ塗り</option><option value="lines" ${backgroundPattern === "lines" ? "selected" : ""}>斜線</option><option value="dots" ${backgroundPattern === "dots" ? "selected" : ""}>ドット</option><option value="grid" ${backgroundPattern === "grid" ? "selected" : ""}>格子</option><option value="diagonal-grid" ${backgroundPattern === "diagonal-grid" ? "selected" : ""}>斜め格子</option><option value="circles" ${backgroundPattern === "circles" ? "selected" : ""}>円模様</option><option value="big-circle" ${backgroundPattern === "big-circle" ? "selected" : ""}>大きな丸</option><option value="big-circle-inverted" ${backgroundPattern === "big-circle-inverted" ? "selected" : ""}>大きな丸（反転）</option><option value="custom" ${backgroundPattern === "custom" ? "selected" : ""}>自分の画像</option></select></div>
+        ${backgroundPattern === "custom" ? `<div class="background-picker"><label>背景画像</label><div class="profile-actions"><button class="button" type="button" data-profile-action="upload-background">画像を選ぶ</button>${customBackground ? `<button class="button icon danger" type="button" data-profile-action="remove-background" aria-label="背景画像を削除" title="背景画像を削除">×</button>` : ""}<input id="customBackgroundFile" type="file" accept="image/*"></div></div><div class="background-picker"><label for="customBackgroundFit">表示方法</label><select id="customBackgroundFit" aria-label="背景画像の表示方法"><option value="cover" ${customBackgroundFit === "cover" ? "selected" : ""}>枠に合わせる</option><option value="contain" ${customBackgroundFit === "contain" ? "selected" : ""}>全体を表示</option><option value="tile" ${customBackgroundFit === "tile" ? "selected" : ""}>タイル状に繰り返す</option></select></div>` : ""}
+        <div class="background-picker"><label for="portraitPatternColor">模様色</label><select id="portraitPatternColor" aria-label="背景模様の色"><option value="white" ${patternColor === "white" ? "selected" : ""}>白</option><option value="black" ${patternColor === "black" ? "selected" : ""}>黒</option></select></div>` : ""}
+        <h2>${escapeHtml(fields.name || "名前未設定")}</h2>
+        ${fields.profession || fields.class ? `<p class="profile-class">${[fields.profession, fields.class].filter(Boolean).map(escapeHtml).join(" / ")}</p>` : ""}
+        ${editing ? `<div class="profile-actions"><button class="button" type="button" data-profile-action="upload">立ち絵を追加</button>${portrait ? `<button class="button icon danger" type="button" data-profile-action="remove" aria-label="表示中の立ち絵を削除" title="表示中の立ち絵を削除">×</button>` : ""}<input id="portraitFile" type="file" accept="image/*" multiple></div><small class="field-hint">複数選択できます（最大12枚）</small>` : ""}
+        <div class="profile-meta">${fields.age ? `年齢 ${escapeHtml(fields.age)}` : "TRPG CHARACTER"}${fields.origin ? ` ・ ${escapeHtml(fields.origin)}` : ""}</div>`;
+      if (portrait && backgroundPattern === "custom" && customBackground) {
+        const frame = profileRail.querySelector(".portrait-frame");
+        frame.style.backgroundImage = `url("${customBackground}")`;
+        frame.style.backgroundSize = customBackgroundFit === "tile" ? "auto" : customBackgroundFit;
+        frame.style.backgroundRepeat = customBackgroundFit === "tile" ? "repeat" : "no-repeat";
+        frame.style.backgroundPosition = "center";
+      }
+    }
+
+    function stopPortraitSlideshow() {
+      clearInterval(portraitSlideTimer);
+      clearTimeout(portraitFadeTimer);
+      portraitSlideTimer = null;
+      portraitSlideshowCharacterId = null;
+      portraitTransitionToken += 1;
+    }
+
+    function startPortraitSlideshow(character) {
+      const portraits = getPortraits(character.fields || {});
+      if (screenMode !== "view" || portraits.length < 2) {
+        stopPortraitSlideshow();
+        return;
+      }
+      if (portraitSlideTimer && portraitSlideshowCharacterId === character.id) return;
+      stopPortraitSlideshow();
+      portraitSlideshowCharacterId = character.id;
+      portraitSlideTimer = setInterval(() => {
+        if (document.hidden || screenMode !== "view" || currentId !== character.id) return;
+        const activeCharacter = characters.find(item => item.id === character.id);
+        if (!activeCharacter) return stopPortraitSlideshow();
+        const activePortraits = getPortraits(activeCharacter.fields || {});
+        if (activePortraits.length < 2) return stopPortraitSlideshow();
+        const currentIndex = Math.min(Math.max(Number(activeCharacter.fields.activePortraitIndex) || 0, 0), activePortraits.length - 1);
+        const nextIndex = (currentIndex + 1) % activePortraits.length;
+        const currentImage = profileRail.querySelector(".portrait-frame img");
+        if (!currentImage) {
+          activeCharacter.fields.activePortraitIndex = nextIndex;
+          renderProfile(activeCharacter);
+          return;
+        }
+        const transitionToken = ++portraitTransitionToken;
+        currentImage.style.opacity = "0";
+        portraitFadeTimer = setTimeout(() => {
+          if (transitionToken !== portraitTransitionToken || screenMode !== "view" || currentId !== activeCharacter.id) return;
+          activeCharacter.fields.activePortraitIndex = nextIndex;
+          renderProfile(activeCharacter);
+          const nextImage = profileRail.querySelector(".portrait-frame img");
+          if (!nextImage) return;
+          nextImage.style.opacity = "0";
+          requestAnimationFrame(() => {
+            if (transitionToken === portraitTransitionToken) nextImage.style.opacity = "1";
+          });
+        }, 350);
+      }, 3500);
+    }
+
+    function linkedPortraitMarkup(character, sizeClass = "") {
+      if (!character) return "";
+      const portraits = getPortraits(character.fields || {});
+      if (!portraits.length) return "";
+      const index = Math.min(Math.max(Number(character.fields.activePortraitIndex) || 0, 0), portraits.length - 1);
+      const settings = getPortraitBackgroundSettings(character, index);
+      const pattern = ["solid", "lines", "dots", "grid", "diagonal-grid", "circles", "big-circle", "big-circle-inverted", "custom"].includes(settings.pattern) ? settings.pattern : "solid";
+      const ink = settings.patternColor === "black" ? "#111111" : "#ffffff";
+      const custom = typeof settings.customBackground === "string" && settings.customBackground.startsWith("data:image/") ? settings.customBackground : "";
+      const fit = ["cover", "contain", "tile"].includes(settings.fit) ? settings.fit : "cover";
+      const backgroundStyle = pattern === "custom" && custom ? `background-image:url('${escapeHtml(custom)}');background-size:${fit === "tile" ? "auto" : fit};background-repeat:${fit === "tile" ? "repeat" : "no-repeat"};background-position:center;` : "";
+      const name = escapeHtml(character.fields?.name || "名前未設定");
+      return `<div class="portrait-frame relationship-portrait-frame ${sizeClass} has-portrait pattern-${pattern}" style="--character-color:${characterColor(character)};--pattern-ink:${ink};${backgroundStyle}"><img src="${escapeHtml(portraits[index])}" alt="${name}の立ち絵"></div>`;
+    }
+
+    function linkedNpcPortraitMarkup(npc, sizeClass = "") {
+      if (!npc || typeof npc.image !== "string" || !npc.image.startsWith("data:image/")) return "";
+      const settings = npc.background || {};
+      const pattern = ["solid", "lines", "dots", "grid", "diagonal-grid", "circles", "big-circle", "big-circle-inverted", "custom"].includes(settings.pattern) ? settings.pattern : "solid";
+      const ink = settings.patternColor === "black" ? "#111111" : "#ffffff";
+      const color = /^#[0-9a-fA-F]{6}$/.test(npc.themeColor || "") ? npc.themeColor : "#888888";
+      const custom = typeof settings.customBackground === "string" && settings.customBackground.startsWith("data:image/") ? settings.customBackground : "";
+      const fit = ["cover", "contain", "tile"].includes(settings.fit) ? settings.fit : "cover";
+      const backgroundStyle = pattern === "custom" && custom ? `background-image:url('${escapeHtml(custom)}');background-size:${fit === "tile" ? "auto" : fit};background-repeat:${fit === "tile" ? "repeat" : "no-repeat"};background-position:center;` : "";
+      return `<div class="portrait-frame relationship-portrait-frame ${sizeClass} has-portrait pattern-${pattern}" style="--character-color:${color};--pattern-ink:${ink};${backgroundStyle}"><img src="${escapeHtml(npc.image)}" alt="${escapeHtml(npc.fields?.name || "名前未設定")}の立ち絵"></div>`;
+    }
+
+    function linkedRelationshipTarget(person) {
+      if (person.npcId) return { type: "npc", item: npcCharacters.find(item => item.id === person.npcId) || null };
+      if (person.otherCharacterId) return { type: "other", item: otherCharacters.find(item => item.id === person.otherCharacterId) || null };
+      if (person.characterId) return { type: "character", item: characters.find(item => item.id === person.characterId) || null };
+      return { type: "none", item: null };
+    }
+
+    function isSecretRelationship(person) {
+      return Boolean(person.secret || (person.npcId && npcCharacters.find(item => item.id === person.npcId)?.secret));
+    }
+
+    function linkedRelationshipPortrait(person, sizeClass = "") {
+      const target = linkedRelationshipTarget(person);
+      if (target.type === "npc") return linkedNpcPortraitMarkup(target.item, sizeClass);
+      if (target.type === "other" && typeof target.item?.image === "string" && target.item.image.startsWith("data:image/")) {
+        return `<div class="portrait-frame relationship-portrait-frame ${sizeClass} has-portrait"><img src="${escapeHtml(target.item.image)}" alt="${escapeHtml(target.item.name || "名前未設定")}の画像"></div>`;
+      }
+      return linkedPortraitMarkup(target.item, sizeClass);
+    }
+
+    function linkedRelationshipName(person) {
+      const target = linkedRelationshipTarget(person);
+      return target.item?.fields?.name || target.item?.name || "";
+    }
+
+    function updateRelationshipPortrait(entry, person) {
+      if (!entry) return;
+      let image = entry.querySelector(".relation-portrait");
+      const markup = linkedRelationshipPortrait(person, "relation-portrait");
+      if (!markup) {
+        image?.remove();
+        return;
+      }
+      if (image) image.remove();
+      entry.querySelector(".relation-identity")?.insertAdjacentHTML("beforeend", markup);
+    }
+
+    function getPortraits(fields) {
+      if (Array.isArray(fields.portraits)) return fields.portraits.filter(portrait => typeof portrait === "string" && portrait.startsWith("data:image/"));
+      return fields.portraitData ? [fields.portraitData] : [];
+    }
+
+    function imageToDataUrl(file) {
+      return createImageBitmap(file).then(bitmap => {
+        const scale = Math.min(1, 1200 / bitmap.width, 1600 / bitmap.height);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        return new Promise((resolve, reject) => {
+          canvas.toBlob(blob => {
+            if (!blob) return reject(new Error("画像を変換できませんでした"));
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(blob);
+          }, "image/webp", 0.86);
+        });
+      });
+    }
+
+    function renderLibrary() {
+      const nameQuery = document.getElementById("searchName").value.trim().toLocaleLowerCase("ja");
+      const professionSelect = document.getElementById("searchProfession");
+      const selectedProfession = professionSelect.value;
+      const professions = [...new Set([...professionOptions, ...characters.map(character => character.fields?.profession)].filter(Boolean))];
+      professionSelect.innerHTML = `<option value="">すべての職業</option>${professions.map(profession => `<option value="${escapeHtml(profession)}">${escapeHtml(profession)}</option>`).join("")}`;
+      professionSelect.value = selectedProfession;
+      const professionQuery = professionSelect.value.toLocaleLowerCase("ja");
+      count.textContent = `${characters.length}人`;
+      const filtered = characters.filter(character => {
+        const name = (character.fields?.name || "").toLocaleLowerCase("ja");
+        const profession = (character.fields?.profession || "").toLocaleLowerCase("ja");
+        return name.includes(nameQuery) && (!professionQuery || profession === professionQuery);
+      });
+      library.innerHTML = filtered.length ? filtered.map(character => `
+        <button type="button" class="character-row ${character.id === currentId ? "active" : ""}" data-id="${escapeHtml(character.id)}">
+          <span class="row-title"><span class="row-swatch" style="background-color:${characterColor(character)}"></span><span class="row-name">${escapeHtml(character.fields?.name || "名前未設定")}</span></span>
+          ${character.fields?.profession || character.fields?.class ? `<span class="row-detail">${[character.fields?.profession, character.fields?.class].filter(Boolean).map(escapeHtml).join(" / ")}</span>` : ""}
+        </button>`).join("") : `<div class="empty-library">${characters.length ? "一致するキャラクターがいません。" : "まだキャラクターはいません。<br>新規作成から追加できます。"}</div>`;
+    }
+
+    function renderEditor() {
+      const character = activeCharacter();
+      if (!character || screenMode !== "view") stopPortraitSlideshow();
+      document.getElementById("exportButton").disabled = !character;
+      document.getElementById("viewModeButton").setAttribute("aria-pressed", String(screenMode === "view"));
+      document.getElementById("editModeButton").setAttribute("aria-pressed", String(screenMode === "edit"));
+      if (!character) {
+        main.style.removeProperty("--character-color");
+        renderProfile(null);
+        main.innerHTML = `<section class="welcome"><div class="welcome-mark" aria-hidden="true">✦</div><h2>物語の登場人物を、ここに。</h2><p>キャラクターはこのブラウザー内にそれぞれ保存されます。<br>JSONファイルとして書き出して、別のPCへの移動やバックアップもできます。</p><button class="button primary" type="button" data-action="create">＋ キャラクターを作成</button></section>`;
+        renderLibrary();
+        return;
+      }
+      if (normalizeScenarioHandouts(character.fields || {})) scheduleSave();
+      main.style.setProperty("--character-color", characterColor(character));
+      if (screenMode === "view") {
+        renderViewer(character);
+        renderProfile(character);
+        startPortraitSlideshow(character);
+        renderLibrary();
+        return;
+      }
+      const values = character.fields || {};
+      const fieldVisibility = character.fieldVisibility || {};
+      const professionChoices = [...new Set([...professionOptions, ...characters.map(item => item.fields?.profession), values.profession].filter(Boolean))];
+      const addedRelationshipIds = character.relationships.some(person => !person.id);
+      character.relationships.forEach(person => { person.id ||= crypto.randomUUID(); });
+      if (addedRelationshipIds) scheduleSave();
+      const memories = Array.isArray(values.memories) ? values.memories : [];
+      const sections = groups.map((group, groupIndex) => `
+        <section class="section ${groupIndex === 0 ? "wide" : ""}">
+          <div class="section-heading"><h3>${escapeHtml(group.title)}</h3><details class="field-visibility" data-visibility-group="${groupIndex}" ${openVisibilityGroup === groupIndex ? "open" : ""}><summary>項目を選ぶ</summary><div class="visibility-options">${group.fields.map(([key, label]) => `<label><input type="checkbox" data-visibility-field="${key}" data-group="${groupIndex}" ${fieldVisibility[key] !== false ? "checked" : ""}>${escapeHtml(label)}</label>`).join("")}</div></details></div>
+          <div class="fields">${group.fields.filter(([key]) => fieldVisibility[key] !== false).map(([key, label, type]) => `
+            <div class="field ${type === "area" || type === "memories" || type === "scenarios" || type === "handouts" || groupIndex === 0 && key === "appearance" ? "full" : ""}">
+              <label for="field-${key}">${escapeHtml(label)}</label>
+              ${type === "memories" ? `<div class="memory-list" id="field-${key}">${memories.map((memory, index) => `<article class="memory-entry"><label class="memory-image" for="memory-image-${index}">${memory.image ? `<img src="${escapeHtml(memory.image)}" alt="思い出 ${index + 1}">` : "画像を選ぶ"}<input id="memory-image-${index}" type="file" accept="image/*" data-memory-image="${index}"></label><div class="memory-note"><label for="memory-note-${index}">メモ</label><textarea id="memory-note-${index}" data-memory-note="${index}" placeholder="この思い出について">${escapeHtml(memory.note || "")}</textarea><div class="memory-people" aria-label="関係する人">${character.relationships.map(person => `<label><input type="checkbox" data-memory-person="${escapeHtml(person.id)}" data-memory-index="${index}" ${(memory.relatedPeople || []).includes(person.id) ? "checked" : ""}>${escapeHtml(person.name || "名前未設定")}</label>`).join("") || `<small class="field-hint">人間関係に登録すると、ここで選べます。</small>`}</div></div><button class="button icon danger" type="button" data-action="remove-memory" data-index="${index}" aria-label="思い出を削除" title="思い出を削除">×</button></article>`).join("")}</div><button class="button" type="button" data-action="add-memory">＋ 思い出を追加</button>` : type === "handouts" ? `<div class="scenario-handouts-content">${renderScenarioHandouts(character)}</div>` : type === "color" ? `<div class="color-entry"><input id="field-${key}" data-field="${key}" value="${escapeHtml(values[key] || "#888888")}" placeholder="#888888" autocomplete="off"><input class="color-picker" type="color" data-color-picker="${key}" value="${/^#[0-9a-fA-F]{6}$/.test(values[key] || "") ? values[key] : "#888888"}" aria-label="テーマカラーを選択" title="カラーピッカー"></div><small class="field-hint">HEXカラーコード（例: #888888）</small>` : type === "profession" ? `<div class="profession-entry"><select id="field-${key}" data-field="${key}"><option value="">選択してください</option>${professionChoices.map(option => `<option value="${escapeHtml(option)}"${values[key] === option ? " selected" : ""}>${escapeHtml(option)}</option>`).join("")}</select><button class="button" type="button" data-action="add-profession" title="職業の候補を追加">＋ 追加</button></div>${addingProfession ? `<div class="profession-entry profession-add"><input id="newProfession" type="text" placeholder="職業名を入力"><button class="button primary" type="button" data-action="save-profession">登録</button><button class="button" type="button" data-action="cancel-profession">キャンセル</button></div>` : ""}` : type === "text" ? `<div class="writing-surface single"><input id="field-${key}" data-field="${key}" value="${escapeHtml(values[key])}" autocomplete="off"></div>` : `<div class="writing-surface multiple"><textarea id="field-${key}" data-field="${key}" rows="3">${escapeHtml(values[key])}</textarea></div>`}
+            </div>`).join("")}</div>
+        </section>`).join("");
+      main.innerHTML = `<div class="editor" style="--character-color:${characterColor(character)}">
+        <div class="editor-actions"><button class="button" type="button" data-action="duplicate">複製</button><button class="button danger" type="button" data-action="delete">削除</button></div>
+        <div class="sections">${sections}
+          <section class="section wide"><div class="people-head"><h3>人間関係</h3><button class="button" type="button" data-action="add-person">＋ 相手を追加</button></div><div class="relation-list" id="relations"></div></section>
+        </div></div>`;
+      renderScenarioPickerField(character);
+      renderScenarioHandoutPickerField(character);
+      [...main.querySelectorAll(".section")].forEach((section, index) => {
+        if (groups[index]?.title === "思い出") section.classList.add("wide");
+      });
+      renderProfile(character);
+      renderRelationships(character);
+      renderSecretControls(character);
+      renderMemoryPeoplePickers(character);
+      renderLibrary();
+    }
+
+    function renderViewer(character) {
+      const fields = character.fields || {};
+      const publicView = document.body.dataset.audienceMode === "public";
+      const sections = groups.map(group => {
+        const populated = group.fields.filter(([key, , type]) => type !== "memories" && (type === "scenarios" ? Array.isArray(fields[key]) && fields[key].length : type === "handouts" ? hasVisibleScenarioHandouts(character, publicView) : String(fields[key] ?? "").trim()));
+        if (!populated.length) return "";
+        return `<section class="viewer-section"><h3>${escapeHtml(group.title)}</h3><dl class="viewer-fields">${populated.map(([key, label, type]) => `<div class="viewer-field ${key === "appearance" || key === "notes" || key === "backstory" || key === "pastEvents" || key === "specialAbilities" || key === "goal" || key === "adventureReason" || key === "secret" || key === "gmNotes" || type === "scenarios" || type === "handouts" ? "full" : ""}"><dt>${escapeHtml(label)}</dt><dd>        ${type === "scenarios" ? fields[key].map(escapeHtml).join("、") : type === "handouts" ? renderScenarioHandoutViewer(character, publicView) : key === "themeColor" && /^#[0-9a-fA-F]{6}$/.test(fields[key]) ? `<span class="row-swatch" style="display:inline-block;vertical-align:middle;background-color:${escapeHtml(fields[key])}"></span> ${escapeHtml(fields[key])}` : escapeHtml(fields[key])}</dd></div>`).join("")}</dl></section>`;
+      }).join("");
+      const memories = Array.isArray(fields.memories) ? fields.memories.filter(memory => memory.image || String(memory.note || "").trim()) : [];
+      const visibleMemories = memories.filter(memory => !publicView || !memory.secret);
+      const memoriesSection = visibleMemories.length ? `<section class="viewer-section"><h3>思い出</h3><div class="viewer-memories">${visibleMemories.map((memory, index) => {       const relatedPeople = (memory.relatedPeople || []).map(id => character.relationships.find(person => person.id === id)).filter(person => person && (!publicView || !isSecretRelationship(person))); return `<article class="viewer-memory">${memory.image ? `<img src="${escapeHtml(memory.image)}" alt="思い出 ${index + 1}">` : ""}${memory.note ? `<p>${escapeHtml(memory.note)}</p>` : ""}${relatedPeople.length ? `<div class="viewer-memory-people">関係する人: ${relatedPeople.map(person => escapeHtml(person.name || "名前未設定")).join("、")}</div>` : ""}</article>`; }).join("")}</div></section>` : "";
+      const visibleRelationships = character.relationships.filter(person => !publicView || !isSecretRelationship(person));
+      const relationshipSection = visibleRelationships.length ? `<section class="viewer-section"><h3>人間関係</h3><div class="viewer-relationship-list">${visibleRelationships.map((person, index) => {
+        const details = [["relationship", "関係性"], ["meeting", "出会い"], ["impression", "印象"], ["feelings", "相手をどう思っているか"], ["memo", "エピソード・メモ"]].filter(([key]) => String(person[key] || "").trim());
+        const target = linkedRelationshipTarget(person);
+        const linkedName = linkedRelationshipName(person);
+        const isLinked = person.characterId || person.npcId || person.otherCharacterId;
+        const linkedTypeName = target.type === "npc" ? "NPC" : target.type === "other" ? "他キャラ図書館" : "キャラクター";
+        return `<article class="viewer-person"><div class="viewer-person-top"><h4>${escapeHtml(person.name || `人物 ${index + 1}`)}</h4>${linkedRelationshipPortrait(person)}</div>${target.item ? `<p class="viewer-linked-character">${linkedTypeName}: ${escapeHtml(linkedName || "名前未設定")}</p>` : isLinked ? `<p class="viewer-linked-character">${linkedTypeName}: 削除済み</p>` : ""}${details.length ? `<dl class="viewer-fields">${details.map(([key, label]) => `<div class="viewer-field"><dt>${label}</dt><dd>${escapeHtml(person[key])}</dd></div>`).join("")}</dl>` : ""}</article>`;
+      }).join("")}</div></section>` : "";
+      main.innerHTML = `<article class="viewer" style="--character-color:${characterColor(character)}"><header class="viewer-title"><div class="viewer-heading"><h2>${escapeHtml(fields.name || "名前未設定")}</h2>${fields.profession || fields.class ? `<p>${[fields.profession, fields.class].filter(Boolean).map(escapeHtml).join(" / ")}</p>` : ""}</div><div class="viewer-copy-actions"><button class="button" type="button" data-action="copy-profile" data-include-secrets="false">通常コピー</button><button class="button" type="button" data-action="copy-profile" data-include-secrets="true">秘匿込みコピー</button></div></header>${sections || memoriesSection ? "" : `<p class="viewer-empty">まだプロフィール情報がありません。</p>`}${sections}${memoriesSection}${relationshipSection}</article>`;
+    }
+
+    function filterSecretText(value, includeSecrets) {
+      return String(value ?? "").replace(/“([\s\S]*?)”|”([\s\S]*?)”|"([\s\S]*?)"/g, (match, curlyOpen, curlySame, straight) => {
+        const secret = curlyOpen ?? curlySame ?? straight;
+        return includeSecrets ? secret : "";
+      }).replace(/[ \t]{2,}/g, " ").replace(/ *\n */g, "\n").trim();
+    }
+
+    function profileAsText(character, includeSecrets) {
+      const fields = character.fields || {};
+      const visible = value => filterSecretText(value, includeSecrets).trim();
+      const lines = [visible(fields.name) || "名前未設定"];
+      const profession = visible(fields.profession);
+      const characterClass = visible(fields.class);
+      if (profession || characterClass) lines.push([profession, characterClass].filter(Boolean).join(" / "));
+      lines.push("");
+      for (const group of groups) {
+        const populated = group.fields.filter(([, , type]) => type !== "memories").map(([key, label, type]) => [key, label, type === "scenarios" ? (Array.isArray(fields[key]) ? fields[key].map(visible).filter(Boolean).join("、") : "") : type === "handouts" ? scenarioHandoutText(fields, includeSecrets) : visible(fields[key])]).filter(([, , value]) => value);
+        if (!populated.length) continue;
+        lines.push(`【${group.title}】`);
+        for (const [, label, value] of populated) lines.push(`${label}: ${value}`);
+        lines.push("");
+      }
+      const memoryNotes = (Array.isArray(fields.memories) ? fields.memories : []).map(memory => {
+        if (memory.secret && !includeSecrets) return "";
+        const note = visible(memory.note);
+        const relatedNames = (memory.relatedPeople || []).map(id => character.relationships.find(person => person.id === id)).filter(person => person && (includeSecrets || !isSecretRelationship(person))).map(person => visible(person.name)).filter(Boolean);
+        const relatedText = relatedNames.length ? `関係する人: ${relatedNames.join("、")}` : "";
+        return [note, relatedText].filter(Boolean).join("\n");
+      }).filter(Boolean);
+      if (memoryNotes.length) {
+        lines.push("【思い出】", ...memoryNotes, "");
+      }
+      if (character.relationships.length) {
+        const people = character.relationships.filter(person => includeSecrets || !isSecretRelationship(person)).map((person, index) => ({
+          name: visible(person.name),
+          fallbackName: `人物 ${index + 1}`,
+          details: [["relationship", "関係性"], ["meeting", "出会い"], ["impression", "印象"], ["feelings", "相手をどう思っているか"], ["memo", "エピソード・メモ"]].map(([key, label]) => [label, visible(person[key])]).filter(([, value]) => value)
+        })).filter(person => person.name || person.details.length);
+        if (people.length) lines.push("【人間関係】");
+        people.forEach(person => {
+          lines.push(person.name || person.fallbackName);
+          for (const [label, value] of person.details) lines.push(`${label}: ${value}`);
+          lines.push("");
+        });
+      }
+      return lines.join("\n").trim();
+    }
+
+    function copyMemoryForCharacter(memory, sourceCharacter) {
+      const relatedPeopleNames = (memory.relatedPeople || []).map(id => sourceCharacter.relationships.find(person => person.id === id)?.name).filter(Boolean);
+      const relatedPeople = (memory.relatedPeople || []).map(id => {
+        const sourcePerson = sourceCharacter.relationships.find(person => person.id === id);
+        const targetCharacter = characters.find(item => item.id === sourcePerson?.characterId);
+        return targetCharacter?.relationships.find(person => person.reciprocalRelationshipId === id)?.id;
+      }).filter(Boolean);
+      return {
+        id: `${memory.id}:${sourceCharacter.id}`,
+        sharedMemoryId: memory.id,
+        sharedSourceCharacterId: sourceCharacter.id,
+        image: memory.image || "",
+        note: memory.note || "",
+        secret: Boolean(memory.secret),
+        relatedPeopleNames,
+        relatedPeople
+      };
+    }
+
+    function memorySource(character, memory) {
+      if (memory.sharedMemoryId && memory.sharedSourceCharacterId) {
+        const sourceCharacter = characters.find(item => item.id === memory.sharedSourceCharacterId);
+        const sourceMemory = sourceCharacter?.fields.memories?.find(item => item.id === memory.sharedMemoryId);
+        if (sourceCharacter && sourceMemory) return { character: sourceCharacter, memory: sourceMemory };
+      }
+      return { character, memory };
+    }
+
+    async function updateSharedMemory(character, memory, changes) {
+      const source = memorySource(character, memory);
+      Object.assign(source.memory, changes);
+      await syncSharedMemory(source.character, source.memory);
+    }
+
+    async function updateSharedMemoryPerson(character, memory, localPersonId, checked) {
+      const source = memorySource(character, memory);
+      const localPerson = character.relationships.find(person => person.id === localPersonId);
+      const sourcePersonId = memory.sharedMemoryId ? localPerson?.reciprocalRelationshipId : localPersonId;
+      if (!sourcePersonId) return;
+      source.memory.relatedPeople ||= [];
+      if (checked && !source.memory.relatedPeople.includes(sourcePersonId)) source.memory.relatedPeople.push(sourcePersonId);
+      else if (!checked) source.memory.relatedPeople = source.memory.relatedPeople.filter(id => id !== sourcePersonId);
+      if (source.character === character && !memory.sharedMemoryId) {
+        source.memory.sharedWithCharacterIds ||= [];
+        const linkedCharacterId = localPerson.characterId;
+        if (linkedCharacterId && checked && !source.memory.sharedWithCharacterIds.includes(linkedCharacterId)) source.memory.sharedWithCharacterIds.push(linkedCharacterId);
+        if (linkedCharacterId && !checked) source.memory.sharedWithCharacterIds = source.memory.sharedWithCharacterIds.filter(id => id !== linkedCharacterId);
+      }
+      await syncSharedMemory(source.character, source.memory);
+    }
+
+    async function syncSharedMemory(character, memory) {
+      const source = memorySource(character, memory);
+      const sourceCharacter = source.character;
+      const sourceMemory = source.memory;
+      sourceMemory.id ||= crypto.randomUUID();
+      sourceMemory.sharedWithCharacterIds ||= [...new Set((sourceMemory.relatedPeople || []).map(id => sourceCharacter.relationships.find(person => person.id === id)?.characterId).filter(id => id && id !== sourceCharacter.id))];
+      const linkedIds = new Set(sourceMemory.sharedWithCharacterIds.filter(id => id !== sourceCharacter.id));
+      const writes = [];
+      for (const target of characters) {
+        if (target.id === sourceCharacter.id) continue;
+        target.fields.memories ||= [];
+        const mirrorIndex = target.fields.memories.findIndex(item => item.sharedMemoryId === sourceMemory.id && item.sharedSourceCharacterId === sourceCharacter.id);
+        if (linkedIds.has(target.id)) {
+          const mirror = copyMemoryForCharacter(sourceMemory, sourceCharacter);
+          if (mirrorIndex === -1) target.fields.memories.push(mirror);
+          else target.fields.memories[mirrorIndex] = mirror;
+          writes.push(writeCharacter(target));
+        } else if (mirrorIndex !== -1) {
+          target.fields.memories.splice(mirrorIndex, 1);
+          writes.push(writeCharacter(target));
+        }
+      }
+      writes.push(writeCharacter(sourceCharacter));
+      await Promise.all(writes);
+      return sourceMemory;
+    }
+
+    async function removeSharedMemory(character, memory) {
+      if (!memory.sharedMemoryId || !memory.sharedSourceCharacterId) {
+        character.fields.memories = character.fields.memories.filter(item => item !== memory);
+        return;
+      }
+      const sourceId = memory.sharedSourceCharacterId;
+      const sharedId = memory.sharedMemoryId;
+      const writes = [];
+      for (const item of characters) {
+        const before = item.fields.memories?.length || 0;
+        item.fields.memories = (item.fields.memories || []).filter(entry => !(item.id === sourceId ? entry.id === sharedId : entry.sharedMemoryId === sharedId && entry.sharedSourceCharacterId === sourceId));
+        if (item.fields.memories.length !== before) writes.push(writeCharacter(item));
+      }
+      await Promise.all(writes);
+    }
+
+    async function copyProfile(character, includeSecrets) {
+      const text = profileAsText(character, includeSecrets);
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const temporary = document.createElement("textarea");
+          temporary.value = text;
+          temporary.style.position = "fixed";
+          temporary.style.opacity = "0";
+          document.body.append(temporary);
+          temporary.select();
+          const copied = document.execCommand("copy");
+          temporary.remove();
+          if (!copied) throw new Error("コピーできませんでした");
+        }
+        showToast(includeSecrets ? "秘匿内容を含めてコピーしました" : "通常内容をコピーしました");
+      } catch (error) {
+        showToast(`コピーできませんでした: ${error.message}`);
+      }
+    }
+
+    function renderRelationships(character) {
+      const container = document.getElementById("relations");
+      if (!character.relationships.length) {
+        container.innerHTML = `<div class="relation-empty">まだ人物が登録されていません。</div>`;
+        return;
+      }
+      const linkableCharacters = characters.filter(item => item.id !== character.id);
+      container.innerHTML = character.relationships.map((person, index) => {
+        const selectedLink = person.npcId ? `npc:${person.npcId}` : person.otherCharacterId ? `other:${person.otherCharacterId}` : person.characterId ? `character:${person.characterId}` : "";
+        const missingCharacter = person.characterId && !linkableCharacters.some(item => item.id === person.characterId);
+        const missingNpc = person.npcId && !npcCharacters.some(item => item.id === person.npcId);
+        const missingOtherCharacter = person.otherCharacterId && !otherCharacters.some(item => item.id === person.otherCharacterId);
+        return `
+        <article class="relation"><div class="relation-top"><div class="relation-controls"><button class="button icon danger" type="button" data-action="remove-person" data-index="${index}" aria-label="人物を削除" title="人物を削除">×</button></div></div>
+          <div class="relation-identity"><div class="relation-identity-fields">
+            <div class="relation-field"><label for="person-${index}-character">登録済みキャラクター（任意）</label><select id="person-${index}-character" data-person-character="${index}"><option value="" ${!selectedLink ? "selected" : ""}>紐づけなし</option>${missingCharacter ? `<option value="character:${escapeHtml(person.characterId)}" selected>削除済みキャラクター書庫の人物</option>` : ""}${missingNpc ? `<option value="npc:${escapeHtml(person.npcId)}" selected>削除済みNPC</option>` : ""}${missingOtherCharacter ? `<option value="other:${escapeHtml(person.otherCharacterId)}" selected>削除済み他キャラ図書館の人物</option>` : ""}${linkableCharacters.length ? `<optgroup label="キャラクター書庫">${linkableCharacters.map(item => `<option value="character:${escapeHtml(item.id)}"${selectedLink === `character:${item.id}` ? " selected" : ""}>${escapeHtml(item.fields?.name || "名前未設定")}</option>`).join("")}</optgroup>` : ""}${npcCharacters.length ? `<optgroup label="NPC（NPC登録・シナリオ内）" data-npc-options>${npcCharacters.map(item => `<option value="npc:${escapeHtml(item.id)}"${selectedLink === `npc:${item.id}` ? " selected" : ""}>${escapeHtml(item.fields?.name || "名前未設定")}</option>`).join("")}</optgroup>` : ""}${otherCharacters.length ? `<optgroup label="他キャラ図書館">${otherCharacters.map(item => `<option value="other:${escapeHtml(item.id)}"${selectedLink === `other:${item.id}` ? " selected" : ""}>${escapeHtml(item.name || "名前未設定")}</option>`).join("")}</optgroup>` : ""}</select></div>
+            <div class="relation-field"><label for="person-${index}-name">相手</label><input id="person-${index}-name" data-person="${index}" data-person-field="name" value="${escapeHtml(person.name || "")}" autocomplete="off"></div>
+          </div>${linkedRelationshipPortrait(person, "relation-portrait")}</div>
+          <div class="relation-fields">
+            ${[["relationship", "関係性", "textarea"], ["meeting", "出会い", "textarea"], ["impression", "印象", "textarea"], ["feelings", "相手をどう思っているか", "textarea"], ["memo", "エピソード・メモ", "textarea"]].map(([key, label, tag]) => `<div><label for="person-${index}-${key}">${label}</label><div class="writing-surface multiple"><textarea id="person-${index}-${key}" data-person="${index}" data-person-field="${key}" rows=2>${escapeHtml(person[key])}</textarea></div></div>`).join("")}
+          </div></article>`;
+      }).join("");
+      container.querySelectorAll('input[data-person-field="name"]').forEach((input, index) => { input.value = character.relationships[index].name || ""; });
+    }
+
+    function refreshRelationshipNpcOptions() {
+      document.querySelectorAll("#relations select[data-person-character]").forEach(select => {
+        const selected = select.value;
+        select.querySelector("[data-npc-options]")?.remove();
+        if (npcCharacters.length) {
+          const group = document.createElement("optgroup");
+          group.label = "NPC（NPC登録・シナリオ内）";
+          group.dataset.npcOptions = "";
+          npcCharacters.forEach(npc => {
+            const option = document.createElement("option");
+            option.value = `npc:${npc.id}`;
+            option.textContent = npc.fields?.name || "名前未設定";
+            group.append(option);
+          });
+          select.append(group);
+        }
+        select.value = selected;
+      });
+    }
+
+    function renderSecretControls(character) {
+      main.querySelectorAll(".memory-entry").forEach((entry, index) => {
+        const memory = character.fields.memories[index];
+        const label = document.createElement("label");
+        label.className = "secret-toggle";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.memorySecret = String(index);
+        checkbox.checked = Boolean(memory.secret);
+        label.append(checkbox, "秘匿として扱う");
+        entry.querySelector(".memory-note").append(label);
+      });
+      renderRelationshipSecretControls(character);
+    }
+
+    function renderRelationshipSecretControls(character) {
+      main.querySelectorAll(".relation").forEach((entry, index) => {
+        const person = character.relationships[index];
+        if (!person) return;
+        const label = document.createElement("label");
+        label.className = "secret-toggle";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.personSecret = person.id;
+        checkbox.checked = Boolean(person.secret);
+        label.append(checkbox, "秘匿として扱う");
+        entry.querySelector(".relation-controls").append(label);
+      });
+    }
+
+    function renderMemoryPeoplePickers(character) {
+      main.querySelectorAll(".memory-people").forEach((list, index) => {
+        const selectedCount = list.querySelectorAll('input[data-memory-person]:checked').length;
+        const details = document.createElement("details");
+        details.className = "memory-people-picker";
+        const summary = document.createElement("summary");
+        summary.textContent = `関係する人を選ぶ (${selectedCount})`;
+        const options = document.createElement("div");
+        options.className = "memory-people-options";
+        options.setAttribute("aria-label", `思い出 ${index + 1} に関係する人`);
+        while (list.firstChild) options.append(list.firstChild);
+        details.append(summary, options);
+        list.replaceWith(details);
+      });
+    }
+
+    function renderScenarioPicker(character, values) {
+      const selected = Array.isArray(values.passedScenarios) ? values.passedScenarios : [];
+      const options = [...new Set([...scenarioOptions, ...selected])].sort((left, right) => left.localeCompare(right, "ja"));
+      return `<details class="scenario-picker"><summary>シナリオを選ぶ (${selected.length})</summary><div class="scenario-options">${options.map((scenario, index) => `<label><input type="checkbox" data-passed-scenario="${escapeHtml(scenario)}" ${selected.includes(scenario) ? "checked" : ""}><span>${escapeHtml(scenario)}</span></label>`).join("") || `<small class="field-hint">NPC登録でシナリオ候補を追加できます。</small>`}</div></details><button class="button" type="button" data-action="add-scenario" style="margin-left:8px">＋ 候補を追加</button>${addingScenario ? `<div class="scenario-add-panel"><input id="newScenarioOption" type="text" placeholder="新しいシナリオ名" aria-label="追加するシナリオ名"><button class="button primary" type="button" data-action="save-scenario">追加</button><button class="button" type="button" data-action="cancel-scenario">取消</button></div>` : ""}`;
+    }
+
+    function normalizeScenarioHandouts(fields) {
+      const saved = fields.scenarioHandouts;
+      if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+        fields.scenarioHandouts = {};
+        return saved !== undefined;
+      }
+      let changed = false;
+      const normalized = {};
+      Object.entries(saved).forEach(([scenario, value]) => {
+        const records = Array.isArray(value) ? value : typeof value === "string" && value.trim() ? [{ name: value }] : value && typeof value === "object" ? [value] : [];
+        normalized[scenario] = records.filter(record => record && typeof record === "object").map(record => {
+          const handout = {
+            id: typeof record.id === "string" && record.id ? record.id : crypto.randomUUID(),
+            name: typeof record.name === "string" ? record.name : "",
+            characterRef: typeof record.characterRef === "string" ? record.characterRef : "",
+            overview: typeof record.overview === "string" ? record.overview : "",
+            content: typeof record.content === "string" ? record.content : "",
+            result: typeof record.result === "string" ? record.result : "",
+          };
+          if (handout.id !== record.id || handout.name !== record.name || handout.characterRef !== record.characterRef || handout.overview !== record.overview || handout.content !== record.content || handout.result !== record.result) changed = true;
+          return handout;
+        });
+        if (!Array.isArray(value)) changed = true;
+      });
+      fields.scenarioHandouts = normalized;
+      return changed;
+    }
+
+    function scenarioHandoutRecords(fields) {
+      const handouts = fields.scenarioHandouts && typeof fields.scenarioHandouts === "object" ? fields.scenarioHandouts : {};
+      const selectedScenarios = Array.isArray(fields.passedScenarios) ? fields.passedScenarios : [];
+      return selectedScenarios.flatMap(scenario => (Array.isArray(handouts[scenario]) ? handouts[scenario] : []).map(handout => ({ scenario, handout })));
+    }
+
+    function scenarioHandoutText(fields, includeSecrets) {
+      return scenarioHandoutRecords(fields).map(({ scenario, handout }) => [
+        `${scenario} / ${handout.name || "名称未設定"}`,
+        scenarioHandoutCharacterName(handout) ? `該当キャラ: ${scenarioHandoutCharacterName(handout)}` : "",
+        handout.overview ? `概要: ${handout.overview}` : "",
+        includeSecrets && handout.content ? `内容: ${handout.content}` : "",
+        includeSecrets && handout.result ? `結果: ${handout.result}` : "",
+      ].filter(Boolean).join("\n")).join("\n\n");
+    }
+
+    function scenarioHandoutCharacterName(handout, publicView = false) {
+      const [type, id] = String(handout.characterRef || "").split(":", 2);
+      if (type === "character") return characters.find(item => item.id === id)?.fields?.name || "";
+      if (type === "other") {
+        const linkedCharacter = otherCharacters.find(item => item.id === id);
+        return linkedCharacter && (!publicView || !linkedCharacter.secret) ? linkedCharacter.name : "";
+      }
+      return "";
+    }
+
+    function linkedScenarioHandouts(character) {
+      const fields = character.fields || {};
+      const passedScenarios = new Set(Array.isArray(fields.passedScenarios) ? fields.passedScenarios : []);
+      const refs = Array.isArray(fields.scenarioHandoutRefs) ? new Set(fields.scenarioHandoutRefs) : null;
+      return scenarioRecords.flatMap(scenario => {
+        if (!passedScenarios.has(scenario.title)) return [];
+        const handouts = Array.isArray(scenario.handouts) ? scenario.handouts : [];
+        return handouts.flatMap((handout, index) => {
+          const key = scenarioHandoutKey(scenario, handout, index);
+          return handout.targetId === `character:${character.id}` && (!refs || refs.has(key))
+            ? [{ scenario, handout, key }]
+            : [];
+        });
+      });
+    }
+
+    function hasVisibleScenarioHandouts(character, publicView) {
+      const fields = character.fields || {};
+      return scenarioHandoutRecords(fields).some(({ handout }) =>
+        handout.name || handout.characterRef || handout.overview || !publicView && (handout.content || handout.result)
+      ) || linkedScenarioHandouts(character).some(({ handout }) =>
+        handout.title || handout.overview || !publicView && handout.content
+      );
+    }
+
+    function renderScenarioHandoutViewer(character, publicView) {
+      const fields = character.fields || {};
+      const passedScenarios = Array.isArray(fields.passedScenarios) ? fields.passedScenarios : [];
+      const localHandouts = passedScenarios.flatMap(scenario => {
+        const handouts = Array.isArray(fields.scenarioHandouts?.[scenario]) ? fields.scenarioHandouts[scenario] : [];
+        const visible = handouts.filter(handout =>
+          handout.name || handout.overview || scenarioHandoutCharacterName(handout, publicView) || !publicView && (handout.content || handout.result)
+        );
+        if (!visible.length) return "";
+        return `<section class="viewer-handout-scenario"><h4>${escapeHtml(scenario)}</h4>${visible.map(handout => {
+          const characterName = scenarioHandoutCharacterName(handout, publicView);
+          return `<article class="viewer-handout"><h5>${escapeHtml(handout.name || "名称未設定")}</h5>${characterName ? `<p><strong>該当キャラ:</strong> ${escapeHtml(characterName)}</p>` : ""}${handout.overview ? `<div><strong>概要</strong><p>${escapeHtml(handout.overview)}</p></div>` : ""}${!publicView && (handout.content || handout.result) ? `<div class="viewer-handout-secret"><strong>秘匿部分</strong>${handout.content ? `<div><b>内容</b><p>${escapeHtml(handout.content)}</p></div>` : ""}${handout.result ? `<div><b>結果</b><p>${escapeHtml(handout.result)}</p></div>` : ""}</div>` : ""}</article>`;
+        }).join("")}</section>`;
+      });
+      const linkedGroups = new Map();
+      linkedScenarioHandouts(character).forEach(({ scenario, handout }) => {
+        if (!linkedGroups.has(scenario.title)) linkedGroups.set(scenario.title, []);
+        linkedGroups.get(scenario.title).push(handout);
+      });
+      const linkedMarkup = [...linkedGroups].map(([scenario, handouts]) =>
+        `<section class="viewer-handout-scenario"><h4>${escapeHtml(scenario)}</h4>${handouts.map(handout => `<article class="viewer-handout"><h5>${escapeHtml(handout.title || "ハンドアウト")}</h5>${handout.overview ? `<div><strong>概要</strong><p>${escapeHtml(handout.overview)}</p></div>` : ""}${!publicView && handout.content ? `<div class="viewer-handout-secret"><strong>秘匿部分</strong><div><b>内容</b><p>${escapeHtml(handout.content)}</p></div></div>` : ""}</article>`).join("")}</section>`
+      ).join("");
+      return `${localHandouts.join("")}${linkedMarkup}`;
+    }
+
+    function renderScenarioHandouts(character) {
+      const fields = character.fields || {};
+      const selectedScenarios = Array.isArray(fields.passedScenarios) ? fields.passedScenarios : [];
+      if (!selectedScenarios.length) return `<small class="field-hint">先に「通過シナリオ」でシナリオを選択してください。</small>`;
+      const handoutsByScenario = fields.scenarioHandouts || {};
+      return `<div class="scenario-handouts">${selectedScenarios.map(scenario => {
+        const handouts = handoutsByScenario[scenario] || [];
+        const linkedScenario = scenarioRecords.find(item => item.title === scenario);
+        const availableLinkedHandouts = (Array.isArray(linkedScenario?.handouts) ? linkedScenario.handouts : [])
+          .map((handout, index) => ({ handout, key: scenarioHandoutKey(linkedScenario, handout, index) }))
+          .filter(({ handout }) => handout.targetId === `character:${character.id}`);
+        const selectedLinkedRefs = Array.isArray(fields.scenarioHandoutRefs)
+          ? new Set(fields.scenarioHandoutRefs)
+          : new Set(availableLinkedHandouts.map(item => item.key));
+        return `<section class="scenario-handout-group">
+          <div class="scenario-handout-heading"><h4>${escapeHtml(scenario)}</h4><button class="button" type="button" data-action="add-scenario-handout" data-scenario="${escapeHtml(scenario)}">＋ ハンドアウトを追加</button></div>
+          ${availableLinkedHandouts.length ? `<div class="linked-scenario-handouts"><strong>シナリオ管理のハンドアウト</strong>${availableLinkedHandouts.map(({ handout, key }) => `<label><input type="checkbox" data-scenario-handout-ref="${escapeHtml(key)}" ${selectedLinkedRefs.has(key) ? "checked" : ""}><span>${escapeHtml(handout.title || "ハンドアウト")}${handout.overview ? `<small>${escapeHtml(handout.overview)}</small>` : ""}</span></label>`).join("")}</div>` : ""}
+          ${handouts.map((handout, index) => {
+            const selectedCharacter = handout.characterRef || "";
+            const characterExists = selectedCharacter.startsWith("character:") && characters.some(item => `character:${item.id}` === selectedCharacter);
+            const otherCharacterExists = selectedCharacter.startsWith("other:") && otherCharacters.some(item => `other:${item.id}` === selectedCharacter);
+            const missingCharacter = selectedCharacter && !characterExists && !otherCharacterExists;
+            return `<article class="scenario-handout-card" data-handout-scenario="${escapeHtml(scenario)}" data-handout-id="${escapeHtml(handout.id)}">
+              <div class="scenario-handout-card-head"><span>ハンドアウト ${index + 1}</span><button class="button danger" type="button" data-action="remove-scenario-handout" data-scenario="${escapeHtml(scenario)}" data-handout-id="${escapeHtml(handout.id)}">削除</button></div>
+              <div class="scenario-handout-fields">
+                <div class="scenario-handout-field"><label>名称</label><input type="text" maxlength="120" data-handout-field="name" data-scenario="${escapeHtml(scenario)}" data-handout-id="${escapeHtml(handout.id)}" value="${escapeHtml(handout.name || "")}" placeholder="ハンドアウト名"></div>
+                <div class="scenario-handout-field"><label>該当キャラ</label><select data-handout-character data-scenario="${escapeHtml(scenario)}" data-handout-id="${escapeHtml(handout.id)}"><option value="">選択しない</option>${missingCharacter ? `<option value="${escapeHtml(selectedCharacter)}" selected>削除済みのキャラクター</option>` : ""}${characters.length ? `<optgroup label="キャラクター書庫">${characters.map(item => `<option value="character:${escapeHtml(item.id)}"${selectedCharacter === `character:${item.id}` ? " selected" : ""}>${escapeHtml(item.fields?.name || "名前未設定")}</option>`).join("")}</optgroup>` : ""}${otherCharacters.length ? `<optgroup label="他キャラ図書館">${otherCharacters.map(item => `<option value="other:${escapeHtml(item.id)}"${selectedCharacter === `other:${item.id}` ? " selected" : ""}>${escapeHtml(item.name || "名前未設定")}</option>`).join("")}</optgroup>` : ""}</select></div>
+                <div class="scenario-handout-field full"><label>概要（公開）</label><textarea rows="3" data-handout-field="overview" data-scenario="${escapeHtml(scenario)}" data-handout-id="${escapeHtml(handout.id)}" placeholder="公開してよい概要">${escapeHtml(handout.overview || "")}</textarea></div>
+              </div>
+              <div class="scenario-handout-secret"><h5>秘匿部分</h5><div class="scenario-handout-fields">
+                <div class="scenario-handout-field full"><label>内容</label><textarea rows="5" data-handout-field="content" data-scenario="${escapeHtml(scenario)}" data-handout-id="${escapeHtml(handout.id)}" placeholder="秘匿内容">${escapeHtml(handout.content || "")}</textarea></div>
+                <div class="scenario-handout-field full"><label>結果</label><textarea rows="8" data-handout-field="result" data-scenario="${escapeHtml(scenario)}" data-handout-id="${escapeHtml(handout.id)}" placeholder="シナリオ終了後の結果など（長文可）">${escapeHtml(handout.result || "")}</textarea></div>
+              </div></div>
+            </article>`;
+          }).join("") || `<small class="field-hint">このシナリオのハンドアウトはまだありません。</small>`}
+        </section>`;
+      }).join("")}</div>`;
+    }
+
+    function renderScenarioHandoutPickerField(character) {
+      const content = main.querySelector(".scenario-handouts-content");
+      if (content) content.innerHTML = renderScenarioHandouts(character);
+    }
+
+    function renderScenarioPickerField(character) {
+      const field = main.querySelector(".scenario-field-content")?.closest(".field") || main.querySelector('[data-field="passedScenarios"]')?.closest(".field") || main.querySelector('label[for="field-passedScenarios"]')?.closest(".field");
+      if (!field) return;
+      let container = field.querySelector(".scenario-field-content");
+      if (!container) {
+        const textarea = field.querySelector('[data-field="passedScenarios"]');
+        container = document.createElement("div");
+        container.className = "scenario-field-content";
+        if (textarea) textarea.closest(".writing-surface")?.replaceWith(container);
+        else field.append(container);
+      }
+      container.innerHTML = renderScenarioPicker(character, character.fields || {});
+    }
+
+    async function persistCurrent() {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      const character = activeCharacter();
+      if (!character) return;
+      character.updatedAt = Date.now();
+      saveState.textContent = "保存中...";
+      try {
+        await writeCharacter(character);
+        if (Array.isArray(character.fields.passedScenarios)) {
+          try { localStorage.setItem(scenarioSyncSignalKey, String(Date.now())); } catch {}
+        }
+        saveState.textContent = "保存しました";
+        renderLibrary();
+      } catch (error) {
+        saveState.textContent = "保存に失敗しました";
+        showToast(`保存できませんでした: ${error.message}`);
+      }
+    }
+
+    function scheduleSave() {
+      saveState.textContent = "未保存の変更があります";
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(persistCurrent, 350);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.hidden = true; }, 2600);
+    }
+
+    function downloadCharacter(character) {
+      const blob = new Blob([JSON.stringify({ app: "TRPG Character Library", version: 1, character }, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      const safeName = (character.fields.name || "character").replace(/[\\/:*?"<>|]/g, "_");
+      anchor.href = url;
+      anchor.download = `${safeName}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      showToast("キャラクターをJSONファイルに書き出しました");
+    }
+
+    document.getElementById("newButton").addEventListener("click", async () => {
+      await persistCurrent();
+      const character = newCharacter();
+      characters.unshift(character);
+      currentId = character.id;
+      screenMode = "edit";
+      await writeCharacter(character);
+      renderEditor();
+      main.querySelector("input[data-field='name']")?.focus();
+    });
+
+    document.getElementById("viewModeButton").addEventListener("click", async () => {
+      if (screenMode === "view") return;
+      await persistCurrent();
+      screenMode = "view";
+      addingProfession = false;
+      renderEditor();
+    });
+    window.addEventListener("audience-mode-change", () => {
+      const character = activeCharacter();
+      if (character && screenMode === "view") renderViewer(character);
+    });
+
+    document.getElementById("editModeButton").addEventListener("click", async () => {
+      if (screenMode === "edit") return;
+      screenMode = "edit";
+      renderEditor();
+    });
+
+    document.getElementById("searchName").addEventListener("input", renderLibrary);
+    document.getElementById("searchProfession").addEventListener("change", renderLibrary);
+    window.addEventListener("storage", async event => {
+      if (event.key === scenarioRecordsStorageKey || event.key === scenarioStorageKey) {
+        scenarioRecords = readScenarioRecords();
+        try {
+          npcCharacters = await readNpcCharacters();
+          if (event.key === scenarioStorageKey) {
+            const stored = JSON.parse(event.newValue || "[]");
+            scenarioOptions = [...new Set([...(Array.isArray(stored) ? stored : []), ...npcCharacters.map(npc => npc.fields?.scenario)].filter(value => typeof value === "string" && value.trim()))];
+          } else {
+            scenarioOptions = [...new Set([...scenarioOptions, ...npcCharacters.map(npc => npc.fields?.scenario)].filter(value => typeof value === "string" && value.trim()))];
+          }
+        } catch (error) {
+          showToast(`シナリオ・NPC情報を更新できませんでした: ${error.message}`);
+          return;
+        }
+        const character = activeCharacter();
+        if (character) {
+          if (screenMode === "edit") {
+            if (event.key === scenarioRecordsStorageKey) renderScenarioHandoutPickerField(character);
+            renderScenarioPickerField(character);
+            refreshRelationshipNpcOptions();
+          } else renderViewer(character);
+        }
+        return;
+      }
+      if (event.key === otherCharacterStorageKey) {
+        otherCharacters = readOtherCharacters();
+        const character = activeCharacter();
+        if (character) renderEditor();
+        return;
+      }
+    });
+    main.addEventListener("toggle", event => {
+      if (!event.target.matches(".field-visibility")) return;
+      openVisibilityGroup = event.target.open ? Number(event.target.dataset.visibilityGroup) : null;
+    }, true);
+    main.addEventListener("change", async event => {
+      const fieldKey = event.target.dataset.visibilityField;
+      const character = activeCharacter();
+      if (!character) return;
+      if (fieldKey) {
+        character.fieldVisibility ||= {};
+        character.fieldVisibility[fieldKey] = event.target.checked;
+        openVisibilityGroup = Number(event.target.dataset.group);
+        scheduleSave();
+        renderEditor();
+      } else if (event.target.dataset.personCharacter !== undefined) {
+        const person = character.relationships[Number(event.target.dataset.personCharacter)];
+        if (!person) return;
+        const previousCharacterId = person.characterId || person.reciprocalCharacterId || "";
+        const [linkedType, linkedId] = event.target.value.split(":", 2);
+        person.characterId = linkedType === "character" ? linkedId : "";
+        person.npcId = linkedType === "npc" ? linkedId : "";
+        person.otherCharacterId = linkedType === "other" ? linkedId : "";
+        const linkedOtherCharacter = otherCharacters.find(item => item.id === person.otherCharacterId);
+        if (linkedOtherCharacter) {
+          person.name = linkedOtherCharacter.name;
+          const nameInput = main.querySelector(`[data-person="${Number(event.target.dataset.personCharacter)}"][data-person-field="name"]`);
+          if (nameInput) nameInput.value = linkedOtherCharacter.name;
+          main.querySelectorAll(`[data-memory-person="${CSS.escape(person.id)}"]`).forEach(input => {
+            input.parentElement.lastChild.textContent = linkedOtherCharacter.name || "名前未設定";
+          });
+        }
+        if (!person.characterId) delete person.characterId;
+        if (!person.npcId) delete person.npcId;
+        if (!person.otherCharacterId) delete person.otherCharacterId;
+        await syncReciprocalRelationship(character, person, previousCharacterId);
+        updateRelationshipPortrait(event.target.closest(".relation"), person);
+        const relatedMemories = (character.fields.memories || []).filter(memory => (memory.relatedPeople || []).includes(person.id));
+        relatedMemories.forEach(memory => {
+          memory.sharedWithCharacterIds ||= previousCharacterId ? [previousCharacterId] : [];
+          if (previousCharacterId) memory.sharedWithCharacterIds = memory.sharedWithCharacterIds.filter(id => id !== previousCharacterId);
+          if (person.characterId && !memory.sharedWithCharacterIds.includes(person.characterId)) memory.sharedWithCharacterIds.push(person.characterId);
+          syncSharedMemory(character, memory).catch(error => showToast(`思い出を共有できませんでした: ${error.message}`));
+        });
+        scheduleSave();
+      } else if (event.target.dataset.memorySecret !== undefined) {
+        const memory = character.fields.memories?.[Number(event.target.dataset.memorySecret)];
+        if (!memory) return;
+        memory.secret = event.target.checked;
+        updateSharedMemory(character, memory, { secret: memory.secret }).catch(error => showToast(`思い出を同期できませんでした: ${error.message}`));
+        scheduleSave();
+      } else if (event.target.dataset.personSecret !== undefined) {
+        const person = character.relationships.find(item => item.id === event.target.dataset.personSecret);
+        if (!person) return;
+        person.secret = event.target.checked;
+        scheduleSave();
+      } else if (event.target.matches('[data-field="profession"]')) {
+        pruneProfessionOptions();
+        renderLibrary();
+      } else if (event.target.dataset.memoryPerson !== undefined) {
+        const memory = character.fields.memories?.[Number(event.target.dataset.memoryIndex)];
+        if (!memory) return;
+        const picker = event.target.closest(".memory-people-picker");
+        const selectedCount = picker?.querySelectorAll('input[data-memory-person]:checked').length || 0;
+        const summary = picker?.querySelector("summary");
+        if (summary) summary.textContent = `関係する人を選ぶ (${selectedCount})`;
+        await updateSharedMemoryPerson(character, memory, event.target.dataset.memoryPerson, event.target.checked).catch(error => showToast(`思い出を共有できませんでした: ${error.message}`));
+        scheduleSave();
+      } else if (event.target.dataset.passedScenario !== undefined) {
+        character.fields.passedScenarios = Array.isArray(character.fields.passedScenarios) ? character.fields.passedScenarios : [];
+        const scenario = event.target.dataset.passedScenario;
+        if (event.target.checked && !character.fields.passedScenarios.includes(scenario)) character.fields.passedScenarios.push(scenario);
+        else if (!event.target.checked) character.fields.passedScenarios = character.fields.passedScenarios.filter(value => value !== scenario);
+        const summary = event.target.closest(".scenario-picker")?.querySelector("summary");
+        if (summary) summary.textContent = `シナリオを選ぶ (${character.fields.passedScenarios.length})`;
+        renderScenarioPickerField(character);
+        renderScenarioHandoutPickerField(character);
+        scheduleSave();
+      } else if (event.target.dataset.scenarioHandoutRef !== undefined) {
+        if (!Array.isArray(character.fields.scenarioHandoutRefs)) {
+          character.fields.scenarioHandoutRefs = linkedScenarioHandouts(character).map(item => item.key);
+        }
+        const ref = event.target.dataset.scenarioHandoutRef;
+        if (event.target.checked && !character.fields.scenarioHandoutRefs.includes(ref)) character.fields.scenarioHandoutRefs.push(ref);
+        else if (!event.target.checked) character.fields.scenarioHandoutRefs = character.fields.scenarioHandoutRefs.filter(item => item !== ref);
+        renderScenarioHandoutPickerField(character);
+        scheduleSave();
+      } else if (event.target.dataset.handoutCharacter !== undefined) {
+        const handout = character.fields.scenarioHandouts?.[event.target.dataset.scenario]?.find(item => item.id === event.target.dataset.handoutId);
+        if (!handout) return;
+        handout.characterRef = event.target.value;
+        scheduleSave();
+      }
+    });
+    library.addEventListener("click", async event => {
+      const button = event.target.closest("[data-id]");
+      if (!button) return;
+      await persistCurrent();
+      currentId = button.dataset.id;
+      renderEditor();
+    });
+
+    main.addEventListener("input", event => {
+      const character = activeCharacter();
+      if (!character) return;
+      if (event.target.dataset.memoryNote !== undefined) {
+        const memory = character.fields.memories?.[Number(event.target.dataset.memoryNote)];
+        if (memory) {
+          memory.note = event.target.value;
+          updateSharedMemory(character, memory, { note: memory.note }).catch(error => showToast(`思い出を同期できませんでした: ${error.message}`));
+        }
+      }
+      if (event.target.dataset.field) {
+        character.fields[event.target.dataset.field] = event.target.value;
+        if (event.target.dataset.field === "name") updateReciprocalNames(character).catch(error => showToast(`相手側の関係を更新できませんでした: ${error.message}`));
+        if (event.target.dataset.field === "themeColor" && /^#[0-9a-fA-F]{6}$/.test(event.target.value)) {
+          main.querySelector('[data-color-picker="themeColor"]').value = event.target.value;
+          main.style.setProperty("--character-color", event.target.value);
+          main.querySelector(".editor").style.setProperty("--character-color", event.target.value);
+          profileRail.style.setProperty("--character-color", event.target.value);
+          renderLibrary();
+        }
+        if (["name", "profession", "class", "age", "origin"].includes(event.target.dataset.field)) renderProfile(character);
+      }
+      if (event.target.dataset.colorPicker) {
+        character.fields[event.target.dataset.colorPicker] = event.target.value;
+        main.querySelector(`#field-${event.target.dataset.colorPicker}`).value = event.target.value.toUpperCase();
+        main.style.setProperty("--character-color", event.target.value);
+        main.querySelector(".editor").style.setProperty("--character-color", event.target.value);
+        profileRail.style.setProperty("--character-color", event.target.value);
+        renderLibrary();
+      }
+      if (event.target.dataset.personField) {
+        const person = character.relationships[Number(event.target.dataset.person)];
+        person[event.target.dataset.personField] = event.target.value;
+        if (event.target.dataset.personField === "name") {
+          const memoryPersonLabels = main.querySelectorAll(`[data-memory-person="${CSS.escape(person.id)}"]`);
+          memoryPersonLabels.forEach(input => { input.parentElement.lastChild.textContent = event.target.value || "名前未設定"; });
+        }
+      }
+      if (event.target.dataset.handoutField) {
+        const handout = character.fields.scenarioHandouts?.[event.target.dataset.scenario]?.find(item => item.id === event.target.dataset.handoutId);
+        if (handout) handout[event.target.dataset.handoutField] = event.target.value;
+      }
+      scheduleSave();
+    });
+
+    main.addEventListener("change", async event => {
+      if (event.target.dataset.memoryImage === undefined) return;
+      const file = event.target.files?.[0];
+      event.target.value = "";
+      if (!file) return;
+      if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) {
+        showToast("20MB以下の画像ファイルを選択してください");
+        return;
+      }
+      const character = activeCharacter();
+      const memory = character?.fields.memories?.[Number(event.target.dataset.memoryImage)];
+      if (!memory) return;
+      try {
+        memory.image = await imageToDataUrl(file);
+        await updateSharedMemory(character, memory, { image: memory.image });
+        await persistCurrent();
+        renderEditor();
+        showToast("思い出の画像を保存しました");
+      } catch (error) {
+        showToast(`画像を読み込めませんでした: ${error.message}`);
+      }
+    });
+
+    profileRail.addEventListener("click", event => {
+      const action = event.target.closest("[data-profile-action]")?.dataset.profileAction;
+      if (action === "upload") profileRail.querySelector("#portraitFile").click();
+      if (action === "upload-background") profileRail.querySelector("#customBackgroundFile").click();
+      if (action === "remove-background") {
+        const character = activeCharacter();
+        if (!character) return;
+        const portraitIndex = Math.min(Math.max(Number(character.fields.activePortraitIndex) || 0, 0), getPortraits(character.fields).length - 1);
+        getPortraitBackgroundSettings(character, portraitIndex).customBackground = "";
+        renderProfile(character);
+        scheduleSave();
+      }
+      if (action === "remove") {
+        const character = activeCharacter();
+        if (!character) return;
+        const portraits = getPortraits(character.fields);
+        const activeIndex = Math.min(Math.max(Number(character.fields.activePortraitIndex) || 0, 0), portraits.length - 1);
+        portraits.splice(activeIndex, 1);
+        if (Array.isArray(character.fields.portraitBackgrounds)) character.fields.portraitBackgrounds.splice(activeIndex, 1);
+        character.fields.portraits = portraits;
+        character.fields.activePortraitIndex = Math.max(0, Math.min(activeIndex, portraits.length - 1));
+        delete character.fields.portraitData;
+        renderProfile(character);
+        scheduleSave();
+      }
+      const portraitIndex = event.target.closest("[data-portrait-index]")?.dataset.portraitIndex;
+      if (portraitIndex !== undefined) {
+        const character = activeCharacter();
+        if (!character) return;
+        character.fields.activePortraitIndex = Number(portraitIndex);
+        renderProfile(character);
+        scheduleSave();
+      }
+    });
+
+    profileRail.addEventListener("change", async event => {
+      const character = activeCharacter();
+      if (!character) return;
+      const portraitIndex = Math.min(Math.max(Number(character.fields.activePortraitIndex) || 0, 0), getPortraits(character.fields).length - 1);
+      const backgroundSettings = getPortraitBackgroundSettings(character, portraitIndex);
+      if (event.target.id === "customBackgroundFit") {
+        backgroundSettings.fit = event.target.value;
+        renderProfile(character);
+        scheduleSave();
+        return;
+      }
+      if (["portraitBackground", "portraitPatternColor"].includes(event.target.id)) {
+        if (event.target.id === "portraitBackground") backgroundSettings.pattern = event.target.value;
+        else backgroundSettings.patternColor = event.target.value;
+        renderProfile(character);
+        scheduleSave();
+        return;
+      }
+      if (event.target.id === "customBackgroundFile") {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (!file) return;
+        if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) {
+          showToast("20MB以下の画像ファイルを選択してください");
+          return;
+        }
+        try {
+          backgroundSettings.customBackground = await imageToDataUrl(file);
+          await persistCurrent();
+          renderProfile(character);
+          showToast("背景画像を保存しました");
+        } catch (error) {
+          showToast(`背景画像を読み込めませんでした: ${error.message}`);
+        }
+        return;
+      }
+      if (event.target.id !== "portraitFile") return;
+      const files = Array.from(event.target.files || []);
+      event.target.value = "";
+      if (!files.length) return;
+      try {
+        const portraits = getPortraits(character.fields);
+        const remaining = Math.max(0, 12 - portraits.length);
+        const validFiles = files.filter(file => file.type.startsWith("image/") && file.size <= 20 * 1024 * 1024).slice(0, remaining);
+        if (validFiles.length < files.length) showToast(remaining === 0 ? "立ち絵は最大12枚まで登録できます" : "画像ファイルかつ20MB以下の画像を追加しました（最大12枚）");
+        if (!validFiles.length) return;
+        const addedPortraits = await Promise.all(validFiles.map(imageToDataUrl));
+        character.fields.portraits = [...portraits, ...addedPortraits];
+        if (!Array.isArray(character.fields.portraitBackgrounds)) getPortraitBackgroundSettings(character, Math.min(Math.max(Number(character.fields.activePortraitIndex) || 0, 0), portraits.length - 1));
+        for (let index = 0; index < addedPortraits.length; index += 1) {
+          character.fields.portraitBackgrounds.push({ pattern: "solid", patternColor: "white", customBackground: "", fit: "cover" });
+        }
+        character.fields.activePortraitIndex = character.fields.portraits.length - 1;
+        delete character.fields.portraitData;
+        await persistCurrent();
+        renderProfile(character);
+        showToast(`${addedPortraits.length}枚の立ち絵を追加しました`);
+      } catch (error) {
+        showToast(`立ち絵を読み込めませんでした: ${error.message}`);
+      }
+    });
+
+    main.addEventListener("click", async event => {
+      const action = event.target.closest("[data-action]")?.dataset.action;
+      if (!action) return;
+      const character = activeCharacter();
+      if (action === "copy-profile" && character) {
+        await copyProfile(character, event.target.closest("[data-include-secrets]").dataset.includeSecrets === "true");
+        return;
+      }
+      if (action === "add-profession" && character) {
+        addingProfession = true;
+        renderEditor();
+        main.querySelector("#newProfession")?.focus();
+        return;
+      }
+      if (action === "cancel-profession") {
+        addingProfession = false;
+        renderEditor();
+        return;
+      }
+      if (action === "add-scenario" && character) {
+        addingScenario = true;
+        renderScenarioPickerField(character);
+        main.querySelector("#newScenarioOption")?.focus();
+        return;
+      }
+      if (action === "cancel-scenario" && character) {
+        addingScenario = false;
+        renderScenarioPickerField(character);
+        return;
+      }
+      if (action === "save-scenario" && character) {
+        const input = main.querySelector("#newScenarioOption");
+        const scenario = input?.value.trim();
+        if (!scenario) { input?.focus(); return; }
+        scenarioOptions = [...new Set([...scenarioOptions, scenario])].sort((left, right) => left.localeCompare(right, "ja"));
+        try {
+          localStorage.setItem(scenarioStorageKey, JSON.stringify(scenarioOptions));
+        } catch {
+          showToast("シナリオ候補をこのブラウザーに保存できませんでした");
+          return;
+        }
+        character.fields.passedScenarios = [...new Set([...(Array.isArray(character.fields.passedScenarios) ? character.fields.passedScenarios : []), scenario])];
+        addingScenario = false;
+        scheduleSave();
+        renderScenarioPickerField(character);
+        renderScenarioHandoutPickerField(character);
+        return;
+      }
+      if (action === "add-scenario-handout" && character) {
+        const scenario = event.target.closest("[data-scenario]")?.dataset.scenario;
+        if (!scenario) return;
+        character.fields.scenarioHandouts ||= {};
+        character.fields.scenarioHandouts[scenario] ||= [];
+        const handout = { id: crypto.randomUUID(), name: "", characterRef: "", overview: "", content: "", result: "" };
+        character.fields.scenarioHandouts[scenario].push(handout);
+        renderScenarioHandoutPickerField(character);
+        scheduleSave();
+        main.querySelector(`[data-handout-field="name"][data-handout-id="${CSS.escape(handout.id)}"]`)?.focus();
+        return;
+      }
+      if (action === "remove-scenario-handout" && character) {
+        const button = event.target.closest("[data-scenario][data-handout-id]");
+        const scenario = button?.dataset.scenario;
+        const handoutId = button?.dataset.handoutId;
+        if (!scenario || !handoutId || !character.fields.scenarioHandouts?.[scenario]) return;
+        character.fields.scenarioHandouts[scenario] = character.fields.scenarioHandouts[scenario].filter(item => item.id !== handoutId);
+        renderScenarioHandoutPickerField(character);
+        scheduleSave();
+        return;
+      }
+      if (action === "add-memory" && character) {
+        character.fields.memories ||= [];
+        character.fields.memories.push({ id: crypto.randomUUID(), image: "", note: "", relatedPeople: [] });
+        scheduleSave();
+        renderEditor();
+        return;
+      }
+      if (action === "remove-memory" && character) {
+        const memory = character.fields.memories?.[Number(event.target.closest("[data-index]").dataset.index)];
+        if (!memory) return;
+        const sourceId = memory.sharedSourceCharacterId || character.id;
+        const sharedId = memory.sharedMemoryId || memory.id;
+        const sharedCount = characters.filter(item => item.id !== character.id && item.fields.memories?.some(entry => item.id === sourceId ? entry.id === sharedId : entry.sharedMemoryId === sharedId && entry.sharedSourceCharacterId === sourceId)).length;
+        const warning = sharedCount ? `この思い出は他のキャラクターにも共有されています（共有先 ${sharedCount} 人）。\nすべての共有コピーを削除しますか？` : "この思い出を削除しますか？\nこの操作は取り消せません。";
+        if (!confirm(warning)) return;
+        await removeSharedMemory(character, memory);
+        scheduleSave();
+        renderEditor();
+        return;
+      }
+      if (action === "save-profession" && character) {
+        const profession = main.querySelector("#newProfession")?.value.trim();
+        if (!profession) {
+          main.querySelector("#newProfession")?.focus();
+          return;
+        }
+        professionOptions = [...new Set([...professionOptions, profession])];
+        try {
+          localStorage.setItem("trpg-profession-options", JSON.stringify(professionOptions));
+        } catch {
+          showToast("職業候補をこのブラウザーに保存できませんでした");
+        }
+        character.fields.profession = profession;
+        pruneProfessionOptions();
+        addingProfession = false;
+        scheduleSave();
+        renderEditor();
+        return;
+      }
+      if (action === "create") document.getElementById("newButton").click();
+      if (action === "add-person" && character) {
+        character.relationships.push({ id: crypto.randomUUID(), name: "", relationship: "", meeting: "", impression: "", feelings: "", memo: "" });
+        renderRelationships(character);
+        renderRelationshipSecretControls(character);
+        scheduleSave();
+      }
+      if (action === "remove-person" && character) {
+        const [removedPerson] = character.relationships.splice(Number(event.target.closest("[data-index]").dataset.index), 1);
+        if (removedPerson.reciprocalCharacterId) {
+          const target = characters.find(item => item.id === removedPerson.reciprocalCharacterId);
+          if (target) {
+            target.relationships = target.relationships.filter(person => person.id !== removedPerson.reciprocalRelationshipId);
+            await writeCharacter(target);
+          }
+        }
+        character.fields.memories?.forEach(memory => {
+          memory.relatedPeople = (memory.relatedPeople || []).filter(id => id !== removedPerson.id);
+        });
+        renderRelationships(character);
+        renderRelationshipSecretControls(character);
+        scheduleSave();
+      }
+      if (action === "duplicate" && character) {
+        await persistCurrent();
+        const duplicate = structuredClone(character);
+        duplicate.id = crypto.randomUUID();
+        duplicate.fields.name = `${duplicate.fields.name || "名前未設定"}（複製）`;
+        duplicate.createdAt = Date.now();
+        duplicate.updatedAt = Date.now();
+        characters.unshift(duplicate);
+        currentId = duplicate.id;
+        await writeCharacter(duplicate);
+        renderEditor();
+      }
+      if (action === "delete" && character && confirm(`「${character.fields.name || "名前未設定"}」を削除しますか？\nこの操作は取り消せません。`)) {
+        await removeReciprocalRelationships(character);
+        await removeCharacter(character.id);
+        characters = characters.filter(item => item.id !== character.id);
+        pruneProfessionOptions();
+        currentId = characters[0]?.id || null;
+        renderEditor();
+        showToast("キャラクターを削除しました");
+      }
+    });
+
+    document.getElementById("exportButton").addEventListener("click", async () => {
+      await persistCurrent();
+      const character = activeCharacter();
+      if (character) downloadCharacter(character);
+    });
+
+    document.getElementById("importButton").addEventListener("click", () => document.getElementById("importFile").click());
+    document.getElementById("importFile").addEventListener("change", async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        const imported = data.character || data;
+        if (!imported.fields || typeof imported.fields !== "object") throw new Error("キャラクター形式のJSONではありません");
+        await persistCurrent();
+        const character = newCharacter();
+        character.fields = { ...character.fields, ...imported.fields };
+        character.relationships = Array.isArray(imported.relationships) ? imported.relationships : [];
+        characters.unshift(character);
+        pruneProfessionOptions();
+        currentId = character.id;
+        await writeCharacter(character);
+        renderEditor();
+        showToast("キャラクターを読み込みました");
+      } catch (error) {
+        showToast(`読み込めませんでした: ${error.message}`);
+      } finally {
+        event.target.value = "";
+      }
+    });
+
+    window.addEventListener("beforeunload", event => {
+      if (saveTimer) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    });
+
+    (async function start() {
+      try {
+        database = await openDatabase();
+        characters = await readAll();
+        scenarioRecords = readScenarioRecords();
+        npcCharacters = await readNpcCharacters();
+        otherCharacters = readOtherCharacters();
+        const mergedScenarios = [...new Set([...scenarioOptions, ...npcCharacters.map(npc => npc.fields?.scenario)].filter(value => typeof value === "string" && value.trim()))];
+        if (mergedScenarios.length !== scenarioOptions.length) {
+          scenarioOptions = mergedScenarios;
+          try { localStorage.setItem(scenarioStorageKey, JSON.stringify(scenarioOptions)); } catch {}
+        }
+        pruneProfessionOptions();
+        currentId = characters[0]?.id || null;
+        renderEditor();
+      } catch (error) {
+        main.innerHTML = `<section class="welcome"><h2>ローカル保存を開始できません</h2><p>このブラウザーではローカルデータベースを利用できません。最新版のChromeまたはEdgeで開き直してください。<br>${escapeHtml(error.message)}</p></section>`;
+        saveState.textContent = "保存機能を利用できません";
+      }
+    })();
+  </script>
+  <script src="view-mode.js"></script>
+</body>
+</html>

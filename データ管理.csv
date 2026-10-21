@@ -1,0 +1,202 @@
+区分,ページ・機能,保存方式,保存先,レコード階層,項目名,形式・型,内容・参照・注意
+対象範囲,全体,,,,,,このCSVはコード上の保存領域・保存キー・レコード項目の全体一覧です。ブラウザーに現在保存されているユーザー個別のレコード値そのものではありません。
+最終確認日,全体,,,,,,2026-10-22
+基本仕様,全体,ブラウザー内ストレージ,,,,,専用サーバー・オンラインデータベース・ユーザーアカウントへの保存はありません。各HTMLページを開いたブラウザーの保存領域に保存します。
+基本仕様,全体,,,,,,localStorageとIndexedDBは別の保存領域です。HTMLファイルをOneDrive等で同期しても、このブラウザー内データは同期・移動されません。
+基本仕様,全体,,,,,,file://で開いた場合の保存領域はブラウザーごとに差異があり得ます。プライベートブラウズ、別ブラウザープロフィール、サイトデータ消去でも保存状況が異なる／消える場合があります。
+基本仕様,全体,,,,,,公開ビューは表示を切り替えるだけで、アクセス認証や秘匿データの暗号化・サーバー隔離を行いません。
+localStorageデータ,シナリオ管理,localStorage,trpg-scenarios,配列,シナリオレコード,JSON object,シナリオ本体の保存先。配下の全項目は次のシナリオレコード行を参照。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario,id,string,シナリオ識別子。ハンドアウトなどの参照元。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario,title,string,シナリオ名。関連するNPC・通過シナリオ・他キャラ図書館データの照合にも使用。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario,overview,string,公開用概要。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario,url,string,シナリオURL。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario,characterDiagnosisUrl,string,キャラクター診断URL。http/httpsのURL。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.parentKps[],id,string,制作者・作成者プロフィールID。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.parentKps[],name,string,KP・SKP名のスナップショット。先頭がKP、2人目以降がSKP。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.privateContent,object,object,秘匿情報。配下にoverview・synopsis・ending・conversationLogsを保持。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.handouts[],id,string,ハンドアウト識別子。旧データで未設定の場合は画面側でlegacy-indexとして扱う。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.handouts[],title,string,ハンドアウト名。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.handouts[],targetId,string,対象キャラクター参照。character:<ID>またはother:<ID>。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.handouts[],overview,string,ハンドアウト概要（公開情報）。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.handouts[],content,string,ハンドアウト内容（秘匿情報）。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.privateContent,overview,string,シナリオの非公開用概要。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.privateContent,synopsis,string,シナリオの非公開用あらすじ。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.privateContent,ending,string,シナリオの結末・エンディング。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.privateContent.conversationLogs[],name,string,会話ログのファイル名。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.privateContent.conversationLogs[],content,string,会話ログ本文。ページから個別にHTMLファイルとしてダウンロード可能。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[],object,object,NPC本体をシナリオ別に保持。NPC登録のIndexedDBと同一IDで双方向同期し、NPC登録側で削除した場合は該当するシナリオ内の同一NPCも削除。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[],id,string,NPC識別子。NPC登録側から移行した場合は元レコードと同じIDを引き継ぐ。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[].fields,name,string,NPC名。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[].fields,scenario,string,所属シナリオ名。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[].fields,creator,string,制作者・作成者名。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[].fields,memo,string,NPCメモ。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[],image,string,NPC登録と共有する画像データURL。localStorage容量を超えてもIndexedDBの元レコードは削除されない。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[],background,object,立ち絵背景設定（NPC登録と共通のデータ）。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[],themeColor,string,テーマカラー。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[],secret,boolean,秘匿NPCかどうか。公開ビューでは表示されない。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario.npcs[],createdAt・updatedAt,number,作成・最終更新時刻（Unixミリ秒）。双方向同期時の更新競合判定にも使用。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario,npcIds,array of string,通常登場NPCのID一覧。互換参照用で、NPC本体はscenario.npcs[]に保存。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario,privateNpcIds,array of string,秘匿NPCのID一覧。互換参照用で、NPC本体はscenario.npcs[]に保存。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario,privateCharacterIds,array of string,秘匿対象キャラクター参照ID一覧。キャラクター書庫等のID参照。
+レコード項目,シナリオ管理,localStorage,trpg-scenarios,scenario,updatedAt,number,最終更新時刻（Unixミリ秒）。
+localStorageデータ,シナリオ候補,localStorage,trpg-npc-scenarios,配列,string,string,シナリオ名の候補一覧。シナリオ管理・NPC登録・キャラクター書庫間で共有。
+localStorageデータ,削除済みシナリオ,localStorage,trpg-deleted-scenarios,配列,string,string,削除したシナリオタイトル一覧。各ページからの自動再追加を抑止するために使用。
+localStorageデータ,他キャラ図書館,localStorage,trpg-pc-character-register,配列,character,object,配下の全項目は次の他キャラレコード行を参照。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,id,string,レコード識別子。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,name,string,キャラクター名。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,scenario,string,登場シナリオ名。シナリオ名でハンドアウト候補を照合。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,handout,string,ハンドアウト名（自由入力またはシナリオ管理の選択値）。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,scenarioHandoutRef,string,シナリオ管理のハンドアウト参照。シナリオID:ハンドアウトID形式。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,creator,string,制作者・作成者名。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,memo,string,キャラクターのメモ。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,image,string,画像データURL（登録がある場合）。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,secret,boolean,秘匿キャラクターかどうか。公開ビューでは秘匿キャラクターを表示しない。
+レコード項目,他キャラ図書館,localStorage,trpg-pc-character-register,character,updatedAt,number,最終更新時刻（Unixミリ秒）。
+localStorageデータ,制作者・作成者プロフィール,localStorage,trpg-creator-profiles,配列,profile,object,KP・SKP、記憶ページ等から参照。
+レコード項目,制作者・作成者プロフィール,localStorage,trpg-creator-profiles,profile,id,string,プロフィール識別子。
+レコード項目,制作者・作成者プロフィール,localStorage,trpg-creator-profiles,profile,name,string,制作者名。NPCのcreatorはこの値を文字列で保存。
+レコード項目,制作者・作成者プロフィール,localStorage,trpg-creator-profiles,profile,image,string,プロフィール画像データURL（任意）。
+レコード項目,制作者・作成者プロフィール,localStorage,trpg-creator-profiles,profile,xUrl,string,XのURL（任意）。
+レコード項目,制作者・作成者プロフィール,localStorage,trpg-creator-profiles,profile,discordId,string,DiscordユーザーID（任意）。
+レコード項目,制作者・作成者プロフィール,localStorage,trpg-creator-profiles,profile,memo,string,プロフィールメモ（任意）。
+localStorageデータ,制作者名候補,localStorage,trpg-npc-creators,配列,string,string,制作者名文字列の候補一覧。制作者プロフィール保存時にプロフィール名から再生成。
+localStorageデータ,マイプロフィール,localStorage,trpg-my-profile,単一オブジェクト,profile,object,配下の全項目は次のマイプロフィール行を参照。
+レコード項目,マイプロフィール,localStorage,trpg-my-profile,profile,name,string,表示名。
+レコード項目,マイプロフィール,localStorage,trpg-my-profile,profile,handle,string,ハンドルネーム等。
+レコード項目,マイプロフィール,localStorage,trpg-my-profile,profile,introduction,string,自己紹介文。
+レコード項目,マイプロフィール,localStorage,trpg-my-profile,profile,favorites,string,好み・好きなもの。
+レコード項目,マイプロフィール,localStorage,trpg-my-profile,profile,playStyle,string,プレイスタイル。
+レコード項目,マイプロフィール,localStorage,trpg-my-profile,profile,url,string,http/httpsの外部リンク。
+レコード項目,マイプロフィール,localStorage,trpg-my-profile,profile,urlLabel,string,リンクの表示名。
+レコード項目,マイプロフィール,localStorage,trpg-my-profile,profile,image,string,縮小済みプロフィール画像データURL（任意）。
+localStorageデータ,記憶,localStorage,trpg-chat-memories,配列,memory,object,制作者・作成者との記録。キャラクター書庫の「思い出」とは別データ。
+レコード項目,記憶,localStorage,trpg-chat-memories,memory,id,string,記録識別子。
+レコード項目,記憶,localStorage,trpg-chat-memories,memory,title,string,記録タイトル。
+レコード項目,記憶,localStorage,trpg-chat-memories,memory,date,string,日付。
+レコード項目,記憶,localStorage,trpg-chat-memories,memory,details,string,記録の詳細本文。
+レコード項目,記憶,localStorage,trpg-chat-memories,memory,image,string,画像データURL（任意）。
+レコード項目,記憶,localStorage,trpg-chat-memories,memory.creators[],id,string,関連制作者IDのスナップショット。
+レコード項目,記憶,localStorage,trpg-chat-memories,memory.creators[],name,string,関連制作者名のスナップショット。
+レコード項目,記憶,localStorage,trpg-chat-memories,memory.creators[],image,string,関連制作者画像データURLのスナップショット。
+レコード項目,記憶,localStorage,trpg-chat-memories,memory,creatorId/creatorName/creatorImage,legacy fields,旧形式データ互換用。creatorNameがある旧レコードは単一制作者として読み込む。
+localStorageデータ,職業候補,localStorage,trpg-profession-options,配列,string,string,キャラクター書庫の職業候補一覧。未使用候補は整理される場合があります。
+localStorage設定,表示モード,localStorage,trpg-audience-view-mode,単一値,mode,string,公開ビュー／非公開ビューの選択値。既定値はprivate。複数ページで共通。
+localStorage通知,シナリオ候補更新通知,localStorage,trpg-character-scenarios-updated,単一値,timestamp,string,キャラクター書庫が別タブへ変更を知らせるための一時的な更新通知。業務データ本体ではありません。
+localStorage旧形式,NPC登録（移行元）,localStorage,trpg-npc-library,旧配列,npc,JSON object,旧版NPCデータ。IndexedDB側にNPCがない場合にtrpg-npc-library/npcsへ移行し、移行後に削除。
+IndexedDBデータ,キャラクター書庫,IndexedDB,trpg-character-library / characters,object store,character,JSON object,データベースversion 1。主キーはid。思い出ページもこのストアを読み取る。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character,id,string,キャラクター識別子。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character,fields,object,キャラクター項目値。下記field行に列挙。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,name,string,名前。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,nickname,string,通称・あだ名。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,gender,string,性別。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,age,string,年齢。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,origin,string,種族・出身。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,profession,string,職業。職業候補キーtrpg-profession-optionsと連携。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,class,string,クラス。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,themeColor,string,テーマカラー（通常HEXカラーコード）。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,appearance,string,外見の特徴。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,portraits,array of string,立ち絵画像データURL一覧。最大12枚。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,portraitData,string,旧形式の立ち絵画像データURL。portraitsがない旧レコードの読み込み用。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,activePortraitIndex,number,現在選択中の立ち絵配列インデックス。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,portraitBackgrounds,array of object,立ち絵ごとの背景設定。配下にpattern・patternColor・customBackground・fitを保持。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.portraitBackgrounds[],pattern,string,背景模様の種別。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.portraitBackgrounds[],patternColor,string,背景模様色（whiteまたはblack）。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.portraitBackgrounds[],customBackground,string,任意の背景画像データURL。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.portraitBackgrounds[],fit,string,任意背景画像の表示方法。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,portraitBackground,string,旧形式の背景模様。portraitBackgroundsへの移行時に使用後削除。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,portraitPatternColor,string,旧形式の背景模様色。portraitBackgroundsへの移行時に使用後削除。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,customPortraitBackground,string,旧形式のカスタム背景画像データURL。portraitBackgroundsへの移行時に使用後削除。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,customPortraitBackgroundFit,string,旧形式のカスタム背景画像表示方法。portraitBackgroundsへの移行時に使用後削除。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,personality,string,性格。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,strengths,string,長所。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,weaknesses,string,短所。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,likes,string,好きなもの。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,dislikes,string,嫌いなもの。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,fears,string,恐れているもの。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,belief,string,信念・モットー。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,backstory,string,出生・生い立ち。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,family,string,家族構成。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,pastEvents,string,重要な過去の出来事。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,currentLife,string,現在の生活状況。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,passedScenarios,array of string,通過シナリオ名。trpg-npc-scenarios候補・シナリオ記録のタイトルと連携。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,scenarioHandouts,object keyed by scenario title,このキャラクター側で登録したシナリオ別ハンドアウト。下記scenarioHandouts行参照。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,talents,string,得意なこと。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,limitations,string,苦手なこと。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,combatStyle,string,戦闘スタイル。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,specialAbilities,string,特殊能力・魔法・才能。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,goal,string,キャラクターの目標。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,adventureReason,string,冒険に参加する理由。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,ambition,string,達成したいこと。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,cannotLose,string,失いたくないもの。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,voice,string,口調・話し方。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,anger,string,怒ったときの反応。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,trouble,string,困ったときの行動。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,catchphrase,string,よく言う台詞。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,keywords,string,プレイ時のキーワード。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,secret,string,秘密・隠し事。秘匿内容を含み得る。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,gmNotes,string,GM向け設定メモ。秘匿内容を含み得る。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,notes,string,自由記述。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,scenarioHandoutRefs,array of string,シナリオ管理ハンドアウトの選択参照。scenarioId:handoutId形式。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.scenarioHandouts[scenario][],id,string,キャラクター側ハンドアウト識別子。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.scenarioHandouts[scenario][],name,string,キャラクター側ハンドアウト名。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.scenarioHandouts[scenario][],characterRef,string,関連人物参照。character:<ID>またはother:<ID>。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.scenarioHandouts[scenario][],overview,string,公開用ハンドアウト概要。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.scenarioHandouts[scenario][],content,string,秘匿ハンドアウト本文。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.scenarioHandouts[scenario][],result,string,シナリオ終了後の結果。
+キャラクター項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields,memories,array of object,キャラクターの思い出。項目定義はcharacter.fields.memories[]のレコード項目行を参照。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],id,string,思い出識別子。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],image,string,思い出画像データURL。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],note,string,思い出メモ。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],relatedPeople,array of relationship ID,関連する人間関係レコードID一覧。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],secret,boolean,思い出が秘匿扱いかどうか。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],sharedWithCharacterIds,array of character ID,思い出の共有先キャラクターID一覧。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],sharedMemoryId,string,共有コピーの元思い出ID。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],sharedSourceCharacterId,string,共有コピーの元キャラクターID。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],relatedPeopleNames,array of string,共有コピーに保持される表示用関係者名。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.fields.memories[],relatedPeople,array of relationship ID,関連人物ID。共有コピーでは共有先側の関係IDの場合があります。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character,fieldVisibility,object keyed by field key,各キャラクター項目を画面に表示するかの真偽値。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],id,string,人間関係レコード識別子。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],name,string,相手の名前。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],relationship,string,関係性。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],meeting,string,出会い。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],impression,string,印象。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],feelings,string,相手をどう思っているか。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],memo,string,エピソード・メモ。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],secret,boolean,この人間関係を秘匿扱いにするか。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],characterId,optional string,キャラクター書庫の対象キャラクターID。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],npcId,optional string,NPC登録またはシナリオ内NPCの対象ID。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],otherCharacterId,optional string,他キャラ図書館の対象キャラクターID。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],reciprocalCharacterId,optional string,相互関係の相手側キャラクターID。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],reciprocalRelationshipId,optional string,相互関係の相手側関係レコードID。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character.relationships[],reciprocalAuto,boolean,相互関係として自動生成・同期したレコードかどうか。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character,createdAt,number,作成時刻（Unixミリ秒）。
+レコード項目,キャラクター書庫,IndexedDB,trpg-character-library / characters,character,updatedAt,number,最終更新時刻（Unixミリ秒）。
+IndexedDBデータ,NPC登録,IndexedDB,trpg-npc-library / npcs,object store,npc,object,データベースversion 2。NPCレコードの主キーはid。シナリオ管理での新規作成・編集内容もこのストアへ保存し、登録側で削除するとシナリオ側の同一IDレコードも削除。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc,id,string,NPC識別子。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc.fields,name,string,NPC名。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc.fields,scenario,string,シナリオ名。trpg-npc-scenariosの候補と連携。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc.fields,creator,string,制作者・作成者名。trpg-npc-creators候補と連携。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc.fields,memo,string,NPCメモ。
+旧レコード項目,NPC登録・シナリオ内NPC,IndexedDBまたはlocalStorage,既存レコード,npc.fields,handout,string,旧仕様の項目。現在は入力・表示・連携に使用せず、次回編集・保存時に除去されます。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc,image,string,画像データURL。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc,background,object,立ち絵背景設定（次行の項目）。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc.background,pattern,string,背景模様。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc.background,patternColor,string,背景模様色。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc.background,customBackground,string,カスタム背景画像データURL。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc.background,fit,string,背景画像の表示方法。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc,themeColor,string,テーマカラー。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc,secret,boolean,秘匿NPCかどうか。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc,createdAt,number,作成時刻（Unixミリ秒）。
+レコード項目,NPC登録,IndexedDB,trpg-npc-library / npcs,npc,updatedAt,number,最終更新時刻（Unixミリ秒）。
+読み取り連携,思い出ページ,IndexedDB,trpg-character-library / characters,read-only,fields.memories,object array,キャラクター書庫に登録された画像・メモ・関連人物・共有情報を読み取り表示。別の保存キーはありません。
+読み書き連携,シナリオ管理,NPC登録,IndexedDB,trpg-npc-library / npcs,npcs,object array,シナリオ内NPCを同じIDで登録・更新。NPC登録からの更新もシナリオ記録へ反映し、updatedAtで新しいレコードを優先。
+localStorageデータ,NPC同期通知,localStorage,trpg-npc-library-updated,string,timestamp,string,別タブのNPC登録・シナリオ管理にIndexedDBの変更を通知。
+読み取り連携,キャラクター書庫,localStorage,trpg-scenarios,read-only,scenario.npcs[],object array,シナリオ内NPCを人間関係の対象候補として読み取り。NPC登録の旧レコードとIDで統合。
+読み取り連携,シナリオ管理,IndexedDB,trpg-character-library / characters,read-only,characters,object array,シナリオ候補・秘匿キャラクターとの関連表示にキャラクターレコードを参照。
+読み取り連携,キャラクター書庫,localStorage,trpg-pc-character-register,read-only,characters,object array,他キャラ図書館の人物を人間関係やハンドアウト対象として参照。
+読み取り連携,シナリオ管理・キャラクター書庫・他キャラ図書館,localStorage,trpg-scenarios,read-only,scenario.handouts[],object array,共通のハンドアウト記録を対象キャラクターIDで照合。
+ダウンロード機能,キャラクター書庫,JSONファイル,利用者が指定した保存先,export payload,app/version/character,object fields,書き出しJSONの最上位項目。appはTRPG Character Library。versionは1。characterは選択中のキャラクター。
+ダウンロード機能,シナリオ管理,HTMLファイル,利用者が指定した保存先,conversationLogs[],content,string,選択した会話ログ本文をHTMLファイルとして個別にダウンロード可能。
+未対応,全体,なし,なし,全データ一括バックアップ/復元,機能状態,未実装,シナリオ・NPC・他キャラ図書館・記憶・プロフィール等をまとめた一括CSV/JSONの書き出し・復元機能はありません。
+注意,全体,,,,,,画像はデータURL文字列としてレコードに含まれ、CSVへ単純出力すると非常に大きくなり、画像の再利用にも適しません。CSVは項目・保存構造の一覧であり、実データの一括出力ではありません。
+注意,全体,,,,,,秘匿情報はlocalStorage/IndexedDB内に通常データと同じく保存されています。CSVやJSONを共有する前に、秘匿情報・個人情報・画像の有無を確認してください。

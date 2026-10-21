@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f1e8">
+  <title>記憶 | TRPG</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f1e8;
+      --surface: #fffefa;
+      --ink: #262d28;
+      --muted: #747b72;
+      --line: #deded3;
+      --green: #28634e;
+      --coral: #bd614c;
+      --serif: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", Georgia, serif;
+      --sans: "Yu Gothic UI", "Meiryo", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); }
+    .topbar { position: sticky; top: 0; z-index: 30; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 max(24px, calc((100vw - 920px) / 2)); border-bottom: 1px solid #d9d8ce; background: rgba(255,254,250,.96); }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: inherit; font: 18px var(--serif); text-decoration: none; }
+    .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--green); font: 17px Georgia, serif; }
+    .home-link { color: #1c493a; font-size: 12px; text-decoration: none; }
+    main { width: min(100% - 40px, 920px); margin: 48px auto 72px; }
+    .intro { padding-bottom: 24px; border-bottom: 1px solid #d6d7cc; }
+    .eyebrow { margin: 0 0 9px; color: var(--coral); font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+    h1 { margin: 0; font: 34px/1.35 var(--serif); }
+    .intro-copy { margin: 9px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .record-date { margin: 13px 0 0; color: var(--muted); font-size: 11px; }
+    .timeline { margin: 10px 0 0; padding: 0; list-style: none; }
+    .entry { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 17px; padding: 23px 0; border-bottom: 1px solid var(--line); }
+    .entry-mark { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid #c7c8b9; border-radius: 50%; color: var(--green); font: 15px var(--serif); }
+    .entry h2 { margin: 0; font: 19px/1.5 var(--serif); }
+    .entry p { margin: 7px 0 0; color: #505950; font-size: 13px; line-height: 1.9; }
+    .entry strong { color: var(--green); font-weight: 700; }
+    .details { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .details h2 { margin: 0; font: 20px var(--serif); }
+    .details ul { display: grid; gap: 8px; margin: 13px 0 0; padding-left: 20px; color: #505950; font-size: 12px; line-height: 1.8; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .memory-manager { display: grid; grid-template-columns: minmax(270px, 340px) minmax(0, 1fr); align-items: start; gap: 28px; padding: 26px 0 34px; border-bottom: 1px solid var(--line); }
+    .memory-form { position: sticky; top: 20px; padding: 18px; border: 1px solid #d6d9d1; border-top: 3px solid var(--green); border-radius: 3px; background: var(--surface); }
+    .form-heading { margin: 0 0 15px; font: 20px var(--serif); }
+    .field { display: grid; gap: 6px; margin-top: 13px; }
+    .field label { color: #555e56; font-size: 11px; }
+    .field input, .field textarea, .field select, .memory-search { width: 100%; min-width: 0; border: 1px solid #d8d9cf; border-radius: 3px; outline: none; background: var(--surface); color: var(--ink); font-size: 13px; }
+    .field input, .field select, .memory-search { height: 39px; padding: 0 10px; }
+    .field textarea { min-height: 180px; padding: 9px 10px; line-height: 1.8; resize: vertical; }
+    .field input:focus, .field textarea:focus, .field select:focus, .memory-search:focus { border-color: #70917d; box-shadow: 0 0 0 3px rgba(40,99,78,.1); }
+    .image-preview { display: grid; width: 100%; aspect-ratio: 4 / 3; place-items: center; overflow: hidden; border: 1px dashed #bfc6bb; border-radius: 3px; background: #f6f5ef; color: var(--muted); font-size: 12px; }
+    .image-preview img { width: 100%; height: 100%; object-fit: contain; }
+    .image-controls { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+    .image-controls input { display: none; }
+    .button { min-height: 35px; padding: 0 11px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--ink); font-size: 12px; }
+    .button:hover { border-color: #9eaa9e; background: #f8f8f1; }
+    .button.primary { border-color: var(--green); background: var(--green); color: white; }
+    .button.primary:hover { background: #1c493a; }
+    .button.danger { color: #a54234; }
+    .form-actions, .record-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+    .save-state { min-height: 18px; margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .creator-preview { display: flex; align-items: center; gap: 9px; min-height: 42px; margin-top: 8px; color: var(--muted); font-size: 11px; }
+    .creator-avatar { display: grid; width: 36px; height: 36px; flex: 0 0 auto; place-items: center; overflow: hidden; border: 1px solid #d8d9cf; border-radius: 50%; background: #f6f5ef; color: var(--green); font: 15px var(--serif); }
+    .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .creator-picker { display: flex; gap: 7px; }
+    .creator-picker select { flex: 1; }
+    .creator-selection { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+    .creator-chip { display: inline-flex; align-items: center; gap: 7px; padding: 4px 6px 4px 4px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--ink); font-size: 11px; }
+    .creator-chip .creator-avatar { width: 25px; height: 25px; font-size: 11px; }
+    .creator-chip button { width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 16px; line-height: 1; }
+    .creator-chip button:hover { background: #f0eee6; color: var(--ink); }
+    .memory-list-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+    .memory-list-head h2 { margin: 0; font: 21px var(--serif); }
+    .memory-search { max-width: 230px; }
+    .memory-list { display: grid; gap: 10px; }
+    .record-card { overflow: hidden; border: 1px solid var(--line); border-radius: 3px; background: rgba(255,254,250,.88); }
+    .record-image { display: block; width: 100%; max-height: 340px; aspect-ratio: 16 / 9; object-fit: cover; background: #e7e8df; }
+    .record-body { padding: 14px 15px 15px; }
+    .record-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .record-title { margin: 0; overflow-wrap: anywhere; font: 18px/1.5 var(--serif); }
+    .record-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; color: var(--muted); font-size: 11px; }
+    .record-creator { display: inline-flex; align-items: center; gap: 6px; color: var(--green); }
+    .record-creator .creator-avatar { width: 25px; height: 25px; font-size: 11px; }
+    .record-details-toggle { margin-top: 12px; border-top: 1px solid var(--line); }
+    .record-details-toggle summary { padding-top: 10px; color: var(--green); font-size: 12px; cursor: pointer; }
+    .record-details { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; color: #3d463f; font-size: 13px; line-height: 1.9; }
+    .record-actions { margin-top: 0; flex: 0 0 auto; }
+    .record-actions .button { min-height: 30px; padding: 0 8px; font-size: 11px; }
+    .empty-state { padding: 28px 4px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .record-note { margin: 8px 0 0; color: var(--muted); font-size: 10px; line-height: 1.7; }
+    [hidden] { display: none !important; }
+    a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #d6aa57; outline-offset: 2px; }
+    @media (max-width: 640px) {
+      .topbar { min-height: 64px; padding: 0 18px; }
+      .brand { font-size: 15px; }
+      main { width: min(100% - 32px, 600px); margin-top: 32px; }
+      h1 { font-size: 29px; }
+      .entry { grid-template-columns: 28px minmax(0, 1fr); gap: 12px; padding: 19px 0; }
+      .entry-mark { width: 26px; height: 26px; }
+      .entry h2 { font-size: 17px; }
+      .memory-manager { grid-template-columns: 1fr; gap: 22px; padding-top: 20px; }
+      .memory-form { position: static; }
+      .memory-list-head { align-items: stretch; flex-direction: column; }
+      .memory-search { max-width: none; }
+      .record-head { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">✦</span><span>TRPG 記憶</span></a>
+    <a class="home-link" href="index.html">← 管理室へ戻る</a>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="pageTitle">
+      <p class="eyebrow">CHAT ARCHIVE</p>
+      <h1 id="pageTitle">記憶</h1>
+      <p class="intro-copy">このチャットで話したことと、ページづくりで決めたことを記録しています。</p>
+      <p class="record-date">記録日: 2026年10月20日</p>
+    </section>
+    <section class="memory-manager" aria-label="記憶の登録と一覧">
+      <form class="memory-form" id="memoryForm">
+        <h2 class="form-heading" id="formTitle">記憶を追加</h2>
+        <div class="image-preview" id="imagePreview" aria-label="記憶画像のプレビュー">画像未設定</div>
+        <div class="image-controls">
+          <label class="button" for="imageFile">画像を選択</label>
+          <input id="imageFile" type="file" accept="image/*">
+          <button class="button danger" type="button" id="removeImageButton" hidden>画像を削除</button>
+        </div>
+        <p class="record-note">画像は縮小して保存されます。元画像は20MB以下にしてください。</p>
+        <div class="field">
+          <label for="recordTitle">タイトル</label>
+          <input id="recordTitle" type="text" maxlength="120" required placeholder="記憶のタイトル">
+        </div>
+        <div class="field">
+          <label for="recordDate">日付</label>
+          <input id="recordDate" type="date">
+        </div>
+        <div class="field">
+          <label for="creatorSelect">制作者・作成者</label>
+          <div class="creator-picker">
+            <select id="creatorSelect" aria-describedby="creatorHelp"></select>
+            <button class="button" type="button" id="addCreatorButton">追加</button>
+          </div>
+          <div class="creator-selection" id="creatorSelection" aria-live="polite"></div>
+          <p class="record-note" id="creatorHelp">制作者を1人ずつ選んで追加できます。</p>
+        </div>
+        <div class="field">
+          <label for="recordDetails">詳細な内容</label>
+          <textarea id="recordDetails" maxlength="20000" placeholder="出来事や会話、印象に残ったことを詳しく書けます"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="button primary" type="submit" id="saveButton">保存</button>
+          <button class="button" type="button" id="cancelButton" hidden>編集をやめる</button>
+        </div>
+        <p class="save-state" id="saveState" role="status" aria-live="polite">このブラウザーに保存されます</p>
+      </form>
+      <section aria-labelledby="recordsTitle">
+        <div class="memory-list-head">
+          <h2 id="recordsTitle">登録した記憶</h2>
+          <input class="memory-search" id="memorySearch" type="search" placeholder="タイトル・内容・制作者で検索" aria-label="記憶を検索">
+        </div>
+        <div class="memory-list" id="memoryList" aria-live="polite"></div>
+      </section>
+    </section>
+    <ol class="timeline">
+      <li class="entry">
+        <span class="entry-mark" aria-hidden="true">01</span>
+        <div>
+          <h2>制作者との記録を別に管理したい</h2>
+          <p>制作者・作成者の管理内に、TRPGのキャラクター思い出とは分けて記録できる場所を作ることにしました。</p>
+        </div>
+      </li>
+      <li class="entry">
+        <span class="entry-mark" aria-hidden="true">02</span>
+        <div>
+          <h2>記録に必要な機能を決めた</h2>
+          <p>相手の名前、タイトル、日付、画像、メモを登録でき、秘匿表示の切り替え、検索、編集、削除もできる形にしました。プロフィールとは別の保存領域を使い、登録した内容は同じブラウザーに保存します。</p>
+        </div>
+      </li>
+      <li class="entry">
+        <span class="entry-mark" aria-hidden="true">03</span>
+        <div>
+          <h2>管理室から開けるようにした</h2>
+          <p>管理室の「制作者・作成者」欄に専用の入口を置き、一覧とは別に記録画面へ移動できる構成にしました。</p>
+        </div>
+      </li>
+      <li class="entry">
+        <span class="entry-mark" aria-hidden="true">04</span>
+        <div>
+          <h2>名前を「記憶」に揃えた</h2>
+          <p>「3次元」という言葉を画面から取り除き、管理室の項目名と制作者ページのタブ名を<strong>記憶</strong>に統一しました。名称の変更では登録済みデータを消さない方針です。</p>
+        </div>
+      </li>
+      <li class="entry">
+        <span class="entry-mark" aria-hidden="true">05</span>
+        <div>
+          <h2>この会話の記録ページを作成</h2>
+          <p>会話が見えなくなっても決定事項を読み返せるよう、このページに依頼と変更の流れを書き残しました。</p>
+        </div>
+      </li>
+    </ol>
+    <section class="details" aria-labelledby="detailsTitle">
+      <h2 id="detailsTitle">記録機能のメモ</h2>
+      <ul>
+        <li>キャラクターの「思い出」とは別に、制作者・作成者との記録を管理します。</li>
+        <li>記録データはプロフィールと独立して、このブラウザー内に保存されます。</li>
+        <li>このページは今回の会話の要約です。チャットの逐語的な全文ではありません。</li>
+      </ul>
+    </section>
+  </main>
+  <script>
+    "use strict";
+    const CREATOR_STORAGE_KEY = "trpg-creator-profiles";
+    const MEMORY_STORAGE_KEY = "trpg-chat-memories";
+    const form = document.getElementById("memoryForm");
+    const creatorSelect = document.getElementById("creatorSelect");
+    const imageInput = document.getElementById("imageFile");
+    const imagePreview = document.getElementById("imagePreview");
+    const saveState = document.getElementById("saveState");
+    let profiles = loadArray(CREATOR_STORAGE_KEY).filter(profile => profile && typeof profile.name === "string").map(profile => ({
+      id: String(profile.id || ""),
+      name: profile.name,
+      image: typeof profile.image === "string" ? profile.image : "",
+    }));
+    let memories = loadArray(MEMORY_STORAGE_KEY).filter(memory => memory && typeof memory.title === "string").map(memory => ({
+      id: String(memory.id || makeId()),
+      title: memory.title,
+      date: typeof memory.date === "string" ? memory.date : "",
+      details: typeof memory.details === "string" ? memory.details : "",
+      image: typeof memory.image === "string" ? memory.image : "",
+      creators: Array.isArray(memory.creators)
+        ? memory.creators.filter(creator => creator && typeof creator.name === "string").map(creator => ({
+          id: String(creator.id || ""),
+          name: creator.name,
+          image: typeof creator.image === "string" ? creator.image : "",
+        }))
+        : memory.creatorName ? [{
+          id: typeof memory.creatorId === "string" ? memory.creatorId : "",
+          name: memory.creatorName,
+          image: typeof memory.creatorImage === "string" ? memory.creatorImage : "",
+        }] : [],
+      creatorId: typeof memory.creatorId === "string" ? memory.creatorId : "",
+      creatorName: typeof memory.creatorName === "string" ? memory.creatorName : "",
+      creatorImage: typeof memory.creatorImage === "string" ? memory.creatorImage : "",
+    }));
+    let editingId = null;
+    let currentImage = "";
+    let selectedCreators = [];
+
+    function makeId() {
+      return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+
+    function loadArray(key) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || "[]");
+        return Array.isArray(value) ? value : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[character]);
+    }
+
+    function renderCreatorOptions() {
+      const availableProfiles = profiles.filter(profile => !selectedCreators.some(creator => creator.id === profile.id));
+      creatorSelect.innerHTML = `<option value="">制作者を選択</option>${availableProfiles.map(profile => `<option value="${escapeHtml(profile.id)}">${escapeHtml(profile.name)}</option>`).join("")}`;
+      creatorSelect.disabled = profiles.length === 0;
+      document.getElementById("addCreatorButton").disabled = profiles.length === 0;
+      document.getElementById("creatorHelp").innerHTML = profiles.length
+        ? "制作者を1人ずつ選んで追加できます。"
+        : `選択肢がありません。<a href="TRPG制作者管理.html">制作者・作成者のプロフィール</a>を先に登録してください。`;
+      renderCreatorSelection();
+    }
+
+    function renderCreatorSelection() {
+      const selection = document.getElementById("creatorSelection");
+      selection.innerHTML = selectedCreators.map(creator => `<span class="creator-chip">
+        ${avatarMarkup(creator.image, creator.name)}<span>${escapeHtml(creator.name)}</span>
+        <button type="button" data-remove-creator="${escapeHtml(creator.id)}" aria-label="${escapeHtml(creator.name)}を選択から外す">×</button>
+      </span>`).join("");
+    }
+
+    function avatarMarkup(image, name) {
+      const fallback = escapeHtml(String(name || "?").slice(0, 1));
+      return `<span class="creator-avatar">${image ? `<img src="${escapeHtml(image)}" alt="">` : fallback}</span>`;
+    }
+
+    function getCreators(memory) {
+      return memory.creators.map(creator => profiles.find(profile => profile.id === creator.id) || creator);
+    }
+
+    function renderImage() {
+      imagePreview.innerHTML = currentImage ? `<img src="${escapeHtml(currentImage)}" alt="記憶の画像">` : "画像未設定";
+      document.getElementById("removeImageButton").hidden = !currentImage;
+    }
+
+    function renderMemories() {
+      const query = document.getElementById("memorySearch").value.trim().toLocaleLowerCase("ja");
+      const visible = memories.filter(memory => {
+        const creators = getCreators(memory).map(creator => creator.name).join(" ");
+        return `${memory.title} ${memory.date} ${memory.details} ${creators}`.toLocaleLowerCase("ja").includes(query);
+      }).sort((left, right) => (right.date || "").localeCompare(left.date || "") || left.title.localeCompare(right.title, "ja"));
+      const list = document.getElementById("memoryList");
+      if (!visible.length) {
+        list.innerHTML = `<p class="empty-state">${memories.length ? "検索条件に合う記憶はありません。" : "まだ記憶が登録されていません。"}</p>`;
+        return;
+      }
+      list.innerHTML = visible.map(memory => {
+        const creators = getCreators(memory);
+        return `<article class="record-card" id="record-${escapeHtml(memory.id)}">
+          ${memory.image ? `<img class="record-image" src="${escapeHtml(memory.image)}" alt="${escapeHtml(memory.title)}" loading="lazy">` : ""}
+          <div class="record-body"><div class="record-head"><div><h3 class="record-title">${escapeHtml(memory.title)}</h3><div class="record-meta">
+            ${memory.date ? `<time datetime="${escapeHtml(memory.date)}">${escapeHtml(memory.date)}</time>` : ""}
+            ${creators.map(creator => `<span class="record-creator">${avatarMarkup(creator.image, creator.name)}${escapeHtml(creator.name)}</span>`).join("")}
+          </div></div><div class="record-actions"><button class="button" type="button" data-action="edit" data-id="${escapeHtml(memory.id)}">編集</button><button class="button danger" type="button" data-action="delete" data-id="${escapeHtml(memory.id)}">削除</button></div></div>
+          ${memory.details ? `<details class="record-details-toggle"><summary>詳細な内容を表示</summary><p class="record-details">${escapeHtml(memory.details)}</p></details>` : ""}</div>
+        </article>`;
+      }).join("");
+    }
+
+    function persistMemories(nextMemories) {
+      try {
+        localStorage.setItem(MEMORY_STORAGE_KEY, JSON.stringify(nextMemories));
+        memories = nextMemories;
+        saveState.textContent = "保存しました";
+        return true;
+      } catch {
+        saveState.textContent = "保存できませんでした。画像のサイズか詳細文の長さを調整してください。";
+        return false;
+      }
+    }
+
+    function resetForm() {
+      form.reset();
+      editingId = null;
+      currentImage = "";
+      selectedCreators = [];
+      document.getElementById("formTitle").textContent = "記憶を追加";
+      document.getElementById("saveButton").textContent = "保存";
+      document.getElementById("cancelButton").hidden = true;
+      imageInput.value = "";
+      renderImage();
+      renderCreatorOptions();
+    }
+
+    function resizeImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("画像を読み込めませんでした。"));
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = () => reject(new Error("画像を開けませんでした。"));
+          image.onload = () => {
+            const scale = Math.min(1, 1000 / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+            canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+            const context = canvas.getContext("2d");
+            context.fillStyle = "#ffffff";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", 0.8));
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const memory = {
+        id: editingId || makeId(),
+        title: document.getElementById("recordTitle").value.trim(),
+        date: document.getElementById("recordDate").value,
+        details: document.getElementById("recordDetails").value.trim(),
+        image: currentImage,
+        creators: selectedCreators,
+      };
+      const nextMemories = editingId
+        ? memories.map(item => item.id === editingId ? memory : item)
+        : [...memories, memory];
+      if (persistMemories(nextMemories)) {
+        resetForm();
+        renderMemories();
+      }
+    });
+
+    imageInput.addEventListener("change", async () => {
+      const file = imageInput.files?.[0];
+      if (!file) return;
+      if (file.size > 20 * 1024 * 1024) {
+        saveState.textContent = "20MB以下の画像を選択してください。";
+        imageInput.value = "";
+        return;
+      }
+      try {
+        currentImage = await resizeImage(file);
+        renderImage();
+        saveState.textContent = "画像を読み込みました";
+      } catch (error) {
+        saveState.textContent = error.message;
+      }
+    });
+
+    document.getElementById("removeImageButton").addEventListener("click", () => {
+      currentImage = "";
+      imageInput.value = "";
+      renderImage();
+    });
+    document.getElementById("cancelButton").addEventListener("click", resetForm);
+    document.getElementById("memorySearch").addEventListener("input", renderMemories);
+    document.getElementById("addCreatorButton").addEventListener("click", () => {
+      const profile = profiles.find(item => item.id === creatorSelect.value);
+      if (!profile || selectedCreators.some(creator => creator.id === profile.id)) return;
+      selectedCreators = [...selectedCreators, { id: profile.id, name: profile.name, image: profile.image }];
+      renderCreatorOptions();
+    });
+    document.getElementById("creatorSelection").addEventListener("click", event => {
+      const button = event.target.closest("button[data-remove-creator]");
+      if (!button) return;
+      selectedCreators = selectedCreators.filter(creator => creator.id !== button.dataset.removeCreator);
+      renderCreatorOptions();
+    });
+    document.getElementById("memoryList").addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const memory = memories.find(item => item.id === button.dataset.id);
+      if (!memory) return;
+      if (button.dataset.action === "edit") {
+        editingId = memory.id;
+        currentImage = memory.image;
+        document.getElementById("recordTitle").value = memory.title;
+        document.getElementById("recordDate").value = memory.date;
+        document.getElementById("recordDetails").value = memory.details;
+        selectedCreators = getCreators(memory).map(creator => ({ id: creator.id, name: creator.name, image: creator.image }));
+        renderCreatorOptions();
+        document.getElementById("formTitle").textContent = "記憶を編集";
+        document.getElementById("saveButton").textContent = "変更を保存";
+        document.getElementById("cancelButton").hidden = false;
+        renderImage();
+        document.getElementById("recordTitle").focus();
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (button.dataset.action === "delete" && confirm(`「${memory.title}」を削除しますか？`)) {
+        if (persistMemories(memories.filter(item => item.id !== memory.id))) {
+          if (editingId === memory.id) resetForm();
+          renderMemories();
+        }
+      }
+    });
+
+    window.addEventListener("storage", event => {
+      if (event.key !== CREATOR_STORAGE_KEY) return;
+      profiles = loadArray(CREATOR_STORAGE_KEY).filter(profile => profile && typeof profile.name === "string").map(profile => ({
+        id: String(profile.id || ""),
+        name: profile.name,
+        image: typeof profile.image === "string" ? profile.image : "",
+      }));
+      selectedCreators = selectedCreators.map(creator => profiles.find(profile => profile.id === creator.id) || creator);
+      renderCreatorOptions();
+      renderMemories();
+    });
+
+    renderCreatorOptions();
+    renderImage();
+    renderMemories();
+  </script>
+</body>
+</html>

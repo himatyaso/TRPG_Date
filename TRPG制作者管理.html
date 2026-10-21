@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2efe7">
+  <title>制作者・作成者 | TRPG</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f2efe7;
+      --surface: #fffefa;
+      --ink: #242a26;
+      --muted: #72796f;
+      --line: #deded3;
+      --green: #28634e;
+      --green-dark: #1c493a;
+      --coral: #c15d46;
+      --serif: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", Georgia, serif;
+      --sans: "Yu Gothic UI", "Meiryo", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { position: sticky; top: 0; z-index: 30; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 max(24px, calc((100vw - 1120px) / 2)); border-bottom: 1px solid #d9d8ce; background: rgba(255,254,250,.96); }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: inherit; font: 18px var(--serif); text-decoration: none; }
+    .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--green); font: 17px Georgia, serif; }
+    .home-link { color: var(--green-dark); font-size: 12px; text-decoration: none; }
+    .home-link:hover { text-decoration: underline; }
+    main { width: min(100% - 40px, 1120px); margin: 46px auto 72px; }
+    .intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 24px; border-bottom: 1px solid #d6d7cc; }
+    .eyebrow { margin: 0 0 9px; color: var(--coral); font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+    h1 { margin: 0; font: 34px/1.35 var(--serif); }
+    .intro-copy { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .count { flex: 0 0 auto; padding-bottom: 4px; color: var(--muted); font-size: 12px; }
+    .layout { display: grid; grid-template-columns: minmax(270px, 350px) minmax(0, 1fr); align-items: start; gap: 32px; padding-top: 30px; }
+    .form-panel { position: sticky; top: 22px; padding: 20px; border: 1px solid #d6d9d1; border-top: 3px solid var(--green); border-radius: 3px; background: var(--surface); box-shadow: 0 6px 18px rgba(30,35,31,.08); }
+    .form-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    h2 { margin: 0; font: 20px var(--serif); }
+    .form-hint { color: var(--muted); font-size: 10px; }
+    .image-preview { display: grid; width: 100%; aspect-ratio: 1 / 1; place-items: center; overflow: hidden; margin-bottom: 9px; border: 1px dashed #bfc6bb; border-radius: 3px; background: #f6f5ef; color: var(--muted); font-size: 12px; }
+    .image-preview img { width: 100%; height: 100%; object-fit: contain; }
+    .image-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+    .image-actions input { display: none; }
+    .image-note { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .fields { display: grid; gap: 14px; margin-top: 17px; }
+    .field { display: grid; gap: 6px; }
+    .field label { color: #555e56; font-size: 11px; }
+    .field input, .field textarea, .search { width: 100%; min-width: 0; border: 1px solid #d8d9cf; border-radius: 3px; outline: none; background: var(--surface); color: var(--ink); font-size: 13px; }
+    .field input { height: 39px; padding: 0 10px; }
+    .field textarea { min-height: 96px; padding: 9px 10px; line-height: 1.7; resize: vertical; }
+    .field input:focus, .field textarea:focus, .search:focus { border-color: #70917d; box-shadow: 0 0 0 3px rgba(40,99,78,.1); }
+    .form-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 17px; }
+    .button { min-height: 37px; padding: 0 12px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--ink); font-size: 12px; }
+    .button:hover { border-color: #9eaa9e; background: #f8f8f1; }
+    .button.primary { border-color: var(--green); background: var(--green); color: white; }
+    .button.primary:hover { background: var(--green-dark); }
+    .button.danger { color: #a54234; }
+    .button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #d6aa57; outline-offset: 2px; }
+    .save-state { min-height: 18px; margin: 11px 0 0; color: var(--muted); font-size: 11px; }
+    .list-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .list-head h2 { font-size: 21px; }
+    .search { max-width: 230px; height: 36px; padding: 0 10px; }
+    .directory { display: grid; gap: 10px; }
+    .profile { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: start; gap: 15px; padding: 15px; border: 1px solid var(--line); border-radius: 3px; background: rgba(255,254,250,.82); box-shadow: 0 2px 6px rgba(38,53,42,.04); animation: appear .2s ease-out; }
+    @keyframes appear { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .profile-image { display: grid; width: 84px; aspect-ratio: 1; place-items: center; overflow: hidden; border: 1px solid #d8d9cf; border-radius: 3px; background: #f6f5ef; color: var(--muted); font: 27px var(--serif); }
+    .profile-image img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-content { min-width: 0; }
+    .profile-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .profile-head h3 { min-width: 0; margin: 0; overflow-wrap: anywhere; font: 19px/1.4 var(--serif); }
+    .profile-actions { display: flex; flex: 0 0 auto; gap: 6px; }
+    .profile-actions .button { min-height: 30px; padding: 0 8px; font-size: 11px; }
+    .profile-meta { display: grid; gap: 8px; margin-top: 11px; }
+    .meta-row { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; align-items: center; gap: 8px; min-width: 0; font-size: 12px; }
+    .meta-label { color: var(--muted); }
+    .meta-value { min-width: 0; overflow-wrap: anywhere; }
+    .meta-value a { color: var(--green-dark); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    .profile.target-profile { outline: 3px solid #d6aa57; outline-offset: 3px; }
+    .copy-button { min-height: 29px; padding: 0 8px; white-space: nowrap; }
+    .memo { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid #e5e4db; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.8; }
+    .memo:empty { display: none; }
+    .empty { padding: 28px 4px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) {
+      .topbar { min-height: 64px; padding: 0 18px; }
+      .brand { font-size: 15px; }
+      main { width: min(100% - 32px, 600px); margin-top: 32px; }
+      .intro { align-items: flex-start; flex-direction: column; gap: 7px; }
+      h1 { font-size: 29px; }
+      .layout { grid-template-columns: 1fr; gap: 28px; padding-top: 22px; }
+      .form-panel { position: static; }
+    }
+    @media (max-width: 520px) {
+      .list-head { align-items: stretch; flex-direction: column; gap: 10px; }
+      .search { max-width: none; }
+      .profile { grid-template-columns: 62px minmax(0, 1fr); gap: 11px; padding: 12px; }
+      .profile-image { width: 62px; }
+      .profile-head { flex-direction: column; }
+      .profile-head h3 { font-size: 17px; }
+      .meta-row { grid-template-columns: 67px minmax(0, 1fr); gap: 5px; }
+      .copy-button { grid-column: 2; justify-self: start; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">✦</span><span>TRPG 制作者書庫</span></a>
+    <a class="home-link" href="index.html">← 管理室へ戻る</a>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">CREATORS & AUTHORS</p>
+        <h1 id="pageTitle">制作者・作成者</h1>
+        <p class="intro-copy">プロフィールと連絡先をまとめて記録。</p>
+      </div>
+      <p class="count" id="count" aria-live="polite">0 人</p>
+    </section>
+    <div class="layout">
+      <form class="form-panel" id="profileForm">
+        <div class="form-heading"><h2 id="formTitle">新しいプロフィール</h2><span class="form-hint"><span style="color:var(--coral)">*</span> 名前は必須</span></div>
+        <div class="image-preview" id="imagePreview" aria-label="プロフィール画像プレビュー">画像未設定</div>
+        <div class="image-actions">
+          <label class="button" for="imageFile">画像を選択</label>
+          <input id="imageFile" type="file" accept="image/*">
+          <button class="button danger" type="button" id="removeImageButton" hidden>画像を削除</button>
+        </div>
+        <p class="image-note">画像は保存時に縮小されます（元画像20MB以下）</p>
+        <div class="fields">
+          <div class="field"><label for="name">名前 <span style="color:var(--coral)">*</span></label><input id="name" type="text" maxlength="100" autocomplete="off" required></div>
+          <div class="field"><label for="xUrl">XのURL</label><input id="xUrl" type="url" maxlength="500" placeholder="https://x.com/username" autocomplete="url"></div>
+          <div class="field"><label for="discordId">DiscordのユーザーID</label><input id="discordId" type="text" maxlength="100" placeholder="ユーザーIDを入力" autocomplete="off"></div>
+          <div class="field"><label for="memo">メモ</label><textarea id="memo" maxlength="5000" placeholder="連絡時のメモなど"></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button class="button primary" type="submit" id="saveButton">保存</button>
+          <button class="button" type="button" id="cancelButton" hidden>編集をやめる</button>
+        </div>
+        <p class="save-state" id="saveState" role="status" aria-live="polite">このブラウザーに保存されます</p>
+      </form>
+      <section aria-labelledby="listTitle">
+        <div class="list-head">
+          <h2 id="listTitle">登録済みプロフィール</h2>
+          <input class="search" id="search" type="search" placeholder="名前・メモで検索" aria-label="プロフィールを検索">
+        </div>
+        <div class="directory" id="directory" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    "use strict";
+    const PROFILE_STORAGE_KEY = "trpg-creator-profiles";
+    const CREATOR_STORAGE_KEY = "trpg-npc-creators";
+    const form = document.getElementById("profileForm");
+    const directory = document.getElementById("directory");
+    const imageInput = document.getElementById("imageFile");
+    const imagePreview = document.getElementById("imagePreview");
+    const removeImageButton = document.getElementById("removeImageButton");
+    const saveState = document.getElementById("saveState");
+    const search = document.getElementById("search");
+    let editingId = null;
+    let currentImage = "";
+    let profiles = loadProfiles();
+
+    function makeId() {
+      return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+
+    function readArray(key) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || "[]");
+        return Array.isArray(value) ? value : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function loadProfiles() {
+      const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
+      if (saved !== null) {
+        try {
+          const parsed = JSON.parse(saved);
+          return Array.isArray(parsed) ? parsed.filter(profile => profile && typeof profile.name === "string").map(profile => ({
+            id: String(profile.id || makeId()),
+            name: profile.name,
+            image: typeof profile.image === "string" ? profile.image : "",
+            xUrl: typeof profile.xUrl === "string" ? profile.xUrl : "",
+            discordId: typeof profile.discordId === "string" ? profile.discordId : "",
+            memo: typeof profile.memo === "string" ? profile.memo : "",
+          })) : [];
+        } catch {
+          return [];
+        }
+      }
+      return readArray(CREATOR_STORAGE_KEY)
+        .filter(name => typeof name === "string" && name.trim())
+        .map(name => ({ id: makeId(), name: name.trim(), image: "", xUrl: "", discordId: "", memo: "" }));
+    }
+
+    function persist(nextProfiles) {
+      const names = [...new Set(nextProfiles.map(profile => profile.name.trim()).filter(Boolean))];
+      try {
+        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(nextProfiles));
+        localStorage.setItem(CREATOR_STORAGE_KEY, JSON.stringify(names));
+        profiles = nextProfiles;
+        saveState.textContent = "保存しました";
+        return true;
+      } catch {
+        saveState.textContent = "保存できませんでした。画像のサイズを小さくしてお試しください。";
+        return false;
+      }
+    }
+
+    function renameNpcCreator(previousName, nextName) {
+      if (!previousName || previousName === nextName) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("trpg-npc-library");
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const database = request.result;
+          if (!database.objectStoreNames.contains("npcs")) {
+            database.close();
+            resolve();
+            return;
+          }
+          const transaction = database.transaction("npcs", "readwrite");
+          const store = transaction.objectStore("npcs");
+          const readRequest = store.getAll();
+          readRequest.onsuccess = () => {
+            readRequest.result.forEach(npc => {
+              if (npc.fields?.creator !== previousName) return;
+              npc.fields.creator = nextName;
+              store.put(npc);
+            });
+          };
+          readRequest.onerror = () => transaction.abort();
+          transaction.oncomplete = () => { database.close(); resolve(); };
+          transaction.onerror = () => { database.close(); reject(transaction.error); };
+          transaction.onabort = () => { database.close(); reject(transaction.error || new Error("NPCの制作者名を更新できませんでした")); };
+        };
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[character]);
+    }
+
+    function renderImage() {
+      imagePreview.innerHTML = currentImage ? `<img src="${escapeHtml(currentImage)}" alt="プロフィール画像">` : "画像未設定";
+      removeImageButton.hidden = !currentImage;
+    }
+
+    function renderProfiles() {
+      const query = search.value.trim().toLocaleLowerCase("ja");
+      const visible = profiles
+        .filter(profile => `${profile.name} ${profile.memo} ${profile.discordId}`.toLocaleLowerCase("ja").includes(query))
+        .sort((left, right) => left.name.localeCompare(right.name, "ja"));
+      document.getElementById("count").textContent = `${profiles.length} 人`;
+      if (!visible.length) {
+        directory.innerHTML = `<p class="empty">${profiles.length ? "検索条件に合うプロフィールはありません。" : "まだ登録されていません。"}</p>`;
+        return;
+      }
+      directory.innerHTML = visible.map(profile => `
+        <article class="profile" id="profile-${escapeHtml(profile.id)}" data-profile-name="${escapeHtml(profile.name)}">
+          <div class="profile-image">${profile.image ? `<img src="${escapeHtml(profile.image)}" alt="">` : escapeHtml(profile.name.slice(0, 1))}</div>
+          <div class="profile-content">
+            <div class="profile-head">
+              <h3>${escapeHtml(profile.name)}</h3>
+              <div class="profile-actions">
+                <button class="button" type="button" data-action="edit" data-id="${escapeHtml(profile.id)}">編集</button>
+                <button class="button danger" type="button" data-action="delete" data-id="${escapeHtml(profile.id)}">削除</button>
+              </div>
+            </div>
+            <div class="profile-meta">
+              <div class="meta-row"><span class="meta-label">X</span><span class="meta-value">${profile.xUrl ? `<a href="${escapeHtml(profile.xUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(profile.xUrl)}</a>` : "未登録"}</span></div>
+              <div class="meta-row"><span class="meta-label">Discord ID</span><span class="meta-value">${profile.discordId ? escapeHtml(profile.discordId) : "未登録"}</span>${profile.discordId ? `<button class="button copy-button" type="button" data-action="copy" data-id="${escapeHtml(profile.id)}">コピー</button>` : ""}</div>
+            </div>
+            <p class="memo">${escapeHtml(profile.memo)}</p>
+          </div>
+        </article>`).join("");
+    }
+
+    function resetForm() {
+      form.reset();
+      editingId = null;
+      currentImage = "";
+      document.getElementById("formTitle").textContent = "新しいプロフィール";
+      document.getElementById("saveButton").textContent = "保存";
+      document.getElementById("cancelButton").hidden = true;
+      imageInput.value = "";
+      renderImage();
+    }
+
+    function readResizedImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("画像を読み込めませんでした。"));
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = () => reject(new Error("画像を開けませんでした。"));
+          image.onload = () => {
+            const scale = Math.min(1, 700 / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+            canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+            const context = canvas.getContext("2d");
+            context.fillStyle = "#ffffff";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", 0.82));
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const duplicate = profiles.some(profile => profile.name.toLocaleLowerCase("ja") === name.toLocaleLowerCase("ja") && profile.id !== editingId);
+      if (duplicate) {
+        saveState.textContent = "同じ名前のプロフィールがすでにあります。";
+        document.getElementById("name").focus();
+        return;
+      }
+      const profile = {
+        id: editingId || makeId(),
+        name,
+        image: currentImage,
+        xUrl: document.getElementById("xUrl").value.trim(),
+        discordId: document.getElementById("discordId").value.trim(),
+        memo: document.getElementById("memo").value.trim(),
+      };
+      const nextProfiles = editingId ? profiles.map(item => item.id === editingId ? profile : item) : [...profiles, profile];
+      const previousName = profiles.find(item => item.id === editingId)?.name || "";
+      if (previousName && previousName !== name) {
+        try {
+          await renameNpcCreator(previousName, name);
+        } catch (error) {
+          saveState.textContent = `NPCの制作者名を更新できませんでした: ${error.message}`;
+          return;
+        }
+      }
+      if (persist(nextProfiles)) {
+        resetForm();
+        renderProfiles();
+      }
+    });
+
+    imageInput.addEventListener("change", async () => {
+      const file = imageInput.files?.[0];
+      if (!file) return;
+      if (file.size > 20 * 1024 * 1024) {
+        saveState.textContent = "20MB以下の画像を選択してください。";
+        imageInput.value = "";
+        return;
+      }
+      try {
+        currentImage = await readResizedImage(file);
+        renderImage();
+        saveState.textContent = "画像を読み込みました";
+      } catch (error) {
+        saveState.textContent = error.message;
+      }
+    });
+
+    removeImageButton.addEventListener("click", () => {
+      currentImage = "";
+      imageInput.value = "";
+      renderImage();
+    });
+    document.getElementById("cancelButton").addEventListener("click", resetForm);
+    search.addEventListener("input", renderProfiles);
+
+    function openLinkedProfile() {
+      const linkedName = new URLSearchParams(location.search).get("name");
+      if (!linkedName) return;
+      const profile = profiles.find(item => item.name === linkedName);
+      if (profile) {
+        search.value = profile.name;
+        renderProfiles();
+        const target = document.getElementById(`profile-${CSS.escape(profile.id)}`);
+        if (target) {
+          target.classList.add("target-profile");
+          requestAnimationFrame(() => target.scrollIntoView({ behavior: "smooth", block: "center" }));
+        }
+        return;
+      }
+      document.getElementById("name").value = linkedName;
+      saveState.textContent = "プロフィール未登録です。名前を引き継いで新規登録できます。";
+    }
+
+    async function copyText(value) {
+      try {
+        await navigator.clipboard.writeText(value);
+        saveState.textContent = "Discord IDをコピーしました";
+      } catch {
+        const temporary = document.createElement("textarea");
+        temporary.value = value;
+        temporary.style.position = "fixed";
+        temporary.style.opacity = "0";
+        document.body.append(temporary);
+        temporary.select();
+        const copied = document.execCommand("copy");
+        temporary.remove();
+        saveState.textContent = copied ? "Discord IDをコピーしました" : "コピーできませんでした";
+      }
+    }
+
+    directory.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const profile = profiles.find(item => item.id === button.dataset.id);
+      if (!profile) return;
+      if (button.dataset.action === "copy") {
+        copyText(profile.discordId);
+      } else if (button.dataset.action === "edit") {
+        editingId = profile.id;
+        currentImage = profile.image;
+        document.getElementById("name").value = profile.name;
+        document.getElementById("xUrl").value = profile.xUrl;
+        document.getElementById("discordId").value = profile.discordId;
+        document.getElementById("memo").value = profile.memo;
+        document.getElementById("formTitle").textContent = "プロフィールを編集";
+        document.getElementById("saveButton").textContent = "変更を保存";
+        document.getElementById("cancelButton").hidden = false;
+        renderImage();
+        document.getElementById("name").focus();
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (button.dataset.action === "delete" && confirm(`「${profile.name}」を削除しますか？`)) {
+        const nextProfiles = profiles.filter(item => item.id !== profile.id);
+        if (persist(nextProfiles)) {
+          if (editingId === profile.id) resetForm();
+          renderProfiles();
+        }
+      }
+    });
+
+    if (localStorage.getItem(PROFILE_STORAGE_KEY) === null) persist(profiles);
+    renderImage();
+    renderProfiles();
+    openLinkedProfile();
+  </script>
+</body>
+</html>

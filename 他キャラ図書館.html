@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2efe7">
+  <title>他キャラ図書館 | TRPG</title>
+  <link rel="stylesheet" href="view-mode.css">
+  <style>
+    :root { color-scheme: light; --paper:#f2efe7; --surface:#fffefa; --ink:#242a26; --muted:#72796f; --line:#deded3; --green:#28634e; --green-dark:#1c493a; --coral:#c15d46; --serif:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",Georgia,serif; --sans:"Yu Gothic UI","Meiryo",sans-serif; }
+    * { box-sizing:border-box; }
+    body { min-width:320px; min-height:100vh; margin:0; color:var(--ink); background:var(--paper); font-family:var(--sans); }
+    button,input,textarea,select { font:inherit; }
+    button { cursor:pointer; }
+    .topbar { position:sticky; top:0; z-index:30; min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:18px; padding:0 max(24px,calc((100vw - 1120px)/2)); border-bottom:1px solid #d9d8ce; background:rgba(255,254,250,.96); }
+    .brand { display:inline-flex; align-items:center; gap:11px; color:inherit; font:18px var(--serif); text-decoration:none; }
+    .brand-mark { width:30px; height:30px; display:grid; place-items:center; border-radius:50%; color:white; background:var(--green); font:17px Georgia,serif; }
+    .header-links { display:flex; align-items:center; gap:16px; }
+    .home-link { color:var(--green-dark); font-size:12px; text-decoration:none; }
+    main { width:min(100% - 40px,1040px); margin:46px auto 72px; }
+    .intro { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding-bottom:24px; border-bottom:1px solid #d6d7cc; }
+    .eyebrow { margin:0 0 9px; color:var(--coral); font-size:10px; font-weight:700; letter-spacing:1px; }
+    h1 { margin:0; font:34px/1.35 var(--serif); }
+    .intro-copy { margin:8px 0 0; color:var(--muted); font-size:12px; line-height:1.8; }
+    .count { flex:0 0 auto; padding-bottom:4px; color:var(--muted); font-size:12px; }
+    .layout { display:grid; grid-template-columns:minmax(270px,350px) minmax(0,1fr); align-items:start; gap:32px; padding-top:30px; }
+    .form-panel { position:sticky; top:22px; padding:20px; border:1px solid #d6d9d1; border-top:3px solid var(--green); border-radius:3px; background:var(--surface); box-shadow:0 6px 18px rgba(30,35,31,.08); }
+    .form-heading,.list-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    h2 { margin:0; font:20px var(--serif); }
+    .form-hint,.image-note { color:var(--muted); font-size:10px; }
+    .field { display:grid; gap:6px; margin-top:14px; }
+    .field label { color:#555e56; font-size:11px; }
+    .field input,.field textarea,.field select,.search { width:100%; min-width:0; border:1px solid #d8d9cf; border-radius:3px; outline:none; background:var(--surface); color:var(--ink); font-size:13px; }
+    .field input,.field select,.search { height:39px; padding:0 10px; }
+    .field textarea { min-height:96px; padding:9px 10px; line-height:1.7; resize:vertical; }
+    .field input:focus,.field textarea:focus,.field select:focus,.search:focus { border-color:#70917d; box-shadow:0 0 0 3px rgba(40,99,78,.1); }
+    .image-preview { display:grid; width:100%; aspect-ratio:4/3; place-items:center; overflow:hidden; margin-bottom:9px; border:1px dashed #bfc6bb; border-radius:3px; background:#f6f5ef; color:var(--muted); font-size:12px; }
+    .image-preview img { width:100%; height:100%; object-fit:contain; }
+    .image-actions,.form-actions,.entry-actions { display:flex; flex-wrap:wrap; gap:7px; }
+    .image-actions input { display:none; }
+    .image-note { margin:7px 0 0; line-height:1.6; }
+    .secret-field { display:flex; align-items:center; gap:9px; margin-top:16px; padding:11px 12px; border:1px solid #e5c4b8; border-radius:3px; background:#fff8f5; color:#8e4034; font-size:12px; }
+    .button { min-height:36px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface); color:var(--ink); font-size:12px; text-decoration:none; }
+    .button:hover { border-color:#9eaa9e; background:#f8f8f1; }
+    .button.primary { border-color:var(--green); background:var(--green); color:white; }
+    .button.primary:hover { background:var(--green-dark); }
+    .button.danger { color:#a54234; }
+    .form-actions { margin-top:17px; }
+    .save-state { min-height:18px; margin:11px 0 0; color:var(--muted); font-size:11px; }
+    .list-head { align-items:center; margin-bottom:14px; }
+    .search { max-width:230px; }
+    .character-list { display:grid; gap:10px; }
+    .character-entry { padding:15px; border:1px solid var(--line); border-radius:3px; background:rgba(255,254,250,.86); }
+    .entry-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .entry-identity { display:flex; align-items:center; gap:13px; min-width:0; }
+    .entry-image { display:grid; width:68px; height:68px; flex:0 0 auto; place-items:center; overflow:hidden; border:1px solid var(--line); border-radius:3px; background:#f6f5ef; color:var(--muted); font-size:11px; }
+    .entry-image img { width:100%; height:100%; object-fit:cover; }
+    .entry-title { min-width:0; }
+    .entry-title h3 { margin:0; overflow-wrap:anywhere; font:18px/1.4 var(--serif); }
+    .entry-scenario { margin:5px 0 0; color:var(--green); font-size:12px; }
+    .entry-meta { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; color:var(--muted); font-size:11px; }
+    .entry-meta a { color:var(--green-dark); }
+    .entry-secret { margin-left:8px; padding:3px 6px; border:1px solid #d9b8a9; color:#984f3f; font:10px var(--sans); vertical-align:middle; }
+    .entry-memo-details { margin-top:12px; border-top:1px solid #e5e4db; }
+    .entry-memo-details summary { padding-top:10px; color:var(--green-dark); font-size:11px; cursor:pointer; }
+    .entry-memo { margin:8px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; line-height:1.8; }
+    .entry-handout-details { margin-top:12px; padding:10px; border:1px solid #e5e4db; border-radius:3px; background:var(--surface); }
+    .entry-handout-details summary { color:var(--green-dark); font-size:11px; cursor:pointer; }
+    .entry-handout-details p { margin:9px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; line-height:1.8; }
+    .entry-actions .button { min-height:30px; padding:0 8px; font-size:11px; }
+    .empty { padding:28px 4px; color:var(--muted); font-size:12px; line-height:1.8; }
+    [hidden] { display:none !important; }
+    a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline:3px solid #d6aa57; outline-offset:2px; }
+    @media(max-width:760px) { .topbar{min-height:64px;padding:0 18px}.brand{font-size:15px}.header-links{gap:10px}main{width:min(100% - 32px,600px);margin-top:32px}.intro{align-items:flex-start;flex-direction:column;gap:7px}h1{font-size:29px}.layout{grid-template-columns:1fr;gap:28px;padding-top:22px}.form-panel{position:static} }
+    @media(max-width:520px) { .list-head{align-items:stretch;flex-direction:column;gap:10px}.search{max-width:none}.entry-top{flex-direction:column}.audience-switch button{font-size:10px;padding:7px 8px} }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">✦</span><span>TRPG 他キャラ図書館</span></a>
+    <div class="header-links">
+      <div class="audience-switch" role="group" aria-label="表示モード">
+        <button type="button" data-audience-mode="public" aria-pressed="false">公開ビュー</button>
+        <button type="button" data-audience-mode="private" aria-pressed="true">非公開ビュー</button>
+      </div>
+      <a class="home-link" href="index.html">← 管理室へ戻る</a>
+    </div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="pageTitle">
+      <div><p class="eyebrow">OTHER CHARACTERS</p><h1 id="pageTitle">他キャラ図書館</h1><p class="intro-copy">PCキャラクターの名前、登場シナリオ、制作者、ハンドアウト、メモを記録できます。</p></div>
+      <p class="count" id="count" aria-live="polite">0 人</p>
+    </section>
+    <div class="layout">
+      <form class="form-panel" id="characterForm">
+        <div class="form-heading"><h2 id="formTitle">新しいキャラクター</h2><span class="form-hint">名前は必須</span></div>
+        <div class="image-preview" id="imagePreview" aria-label="キャラクター画像プレビュー">画像未設定</div>
+        <div class="image-actions"><label class="button" for="imageFile">画像を選択</label><input id="imageFile" type="file" accept="image/*"><button class="button danger" type="button" id="removeImageButton" hidden>画像を削除</button></div>
+        <p class="image-note">画像は保存時に縮小されます（元画像20MB以下）</p>
+        <div class="field"><label for="characterName">名前 *</label><input id="characterName" type="text" maxlength="100" required placeholder="キャラクターの名前"></div>
+        <div class="field"><label for="scenario">シナリオ名</label><input id="scenario" type="text" maxlength="150" list="scenarioOptions" placeholder="登場するシナリオ"><datalist id="scenarioOptions"></datalist></div>
+        <div class="field"><label for="handout">ハンドアウト</label><input id="handout" type="text" maxlength="200" placeholder="ハンドアウト"><select id="scenarioHandoutSelect" aria-label="シナリオ管理からハンドアウトを選択"><option value="">シナリオ管理から選択（任意）</option></select><small class="image-note">先にシナリオ管理で、このキャラクターを対象にしたハンドアウトを登録してください。</small></div>
+        <div class="field"><label for="creator">制作者・作成者</label><input id="creator" type="text" maxlength="100" list="creatorOptions" placeholder="制作者・作成者"><datalist id="creatorOptions"></datalist></div>
+        <div class="field"><label for="memo">メモ</label><textarea id="memo" maxlength="5000" placeholder="キャラクターについてのメモ"></textarea></div>
+        <label class="secret-field"><input id="secretCharacter" type="checkbox">秘匿キャラ（公開ビューでは表示しない）</label>
+        <div class="form-actions"><button class="button primary" type="submit" id="submitButton">登録</button><button class="button" type="button" id="cancelButton" hidden>編集をやめる</button></div>
+        <p class="save-state" id="saveState" role="status" aria-live="polite">このブラウザーに保存されます</p>
+      </form>
+      <section aria-labelledby="listTitle">
+        <div class="list-head"><h2 id="listTitle">登録済みキャラクター</h2><input class="search" id="search" type="search" placeholder="名前・シナリオで検索" aria-label="キャラクターを検索"></div>
+        <div class="character-list" id="characterList" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <script src="view-mode.js"></script>
+  <script>
+    "use strict";
+    const STORAGE_KEY = "trpg-pc-character-register";
+    const SCENARIO_RECORDS_KEY = "trpg-scenarios";
+    const SCENARIO_KEY = "trpg-npc-scenarios";
+    const CREATOR_KEY = "trpg-npc-creators";
+    const form = document.getElementById("characterForm");
+    const list = document.getElementById("characterList");
+    let characters = loadArray(STORAGE_KEY);
+    let scenarioRecords = loadArray(SCENARIO_RECORDS_KEY).filter(item => item && typeof item.id === "string" && typeof item.title === "string");
+    let editingId = null;
+    let currentImage = "";
+    let selectedScenarioHandoutRef = "";
+
+    function loadArray(key) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || "[]");
+        return Array.isArray(value) ? value : [];
+      } catch {
+        return [];
+      }
+    }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "'":"&#39;" })[character]);
+    }
+    function makeId() {
+      return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+    function refreshOptions() {
+      document.getElementById("scenarioOptions").innerHTML = loadArray(SCENARIO_KEY).map(value => `<option value="${escapeHtml(value)}"></option>`).join("");
+      document.getElementById("creatorOptions").innerHTML = loadArray(CREATOR_KEY).map(value => `<option value="${escapeHtml(value)}"></option>`).join("");
+    }
+    function renderImage() {
+      document.getElementById("imagePreview").innerHTML = currentImage ? `<img src="${escapeHtml(currentImage)}" alt="キャラクター画像プレビュー">` : "画像未設定";
+      document.getElementById("removeImageButton").hidden = !currentImage;
+    }
+    function scenarioHandoutRef(scenario, handout, index) {
+      return `${scenario.id}:${handout.id || `legacy-${index}`}`;
+    }
+    function findScenarioHandout(ref) {
+      for (const scenario of scenarioRecords) {
+        const handouts = Array.isArray(scenario.handouts) ? scenario.handouts : [];
+        const handout = handouts.find((item, index) => scenarioHandoutRef(scenario, item, index) === ref);
+        if (handout) return { scenario, handout };
+      }
+      return null;
+    }
+    function renderScenarioHandoutOptions(characterId, scenarioName) {
+      const select = document.getElementById("scenarioHandoutSelect");
+      const options = scenarioRecords
+        .filter(scenario => scenario.title === scenarioName)
+        .flatMap(scenario => (Array.isArray(scenario.handouts) ? scenario.handouts : []).map((handout, index) => ({ scenario, handout, index })))
+        .filter(({ handout }) => handout.targetId === `other:${characterId}`);
+      select.innerHTML = `<option value="">シナリオ管理から選択（任意）</option>${options.map(({ scenario, handout, index }) => {
+        const ref = scenarioHandoutRef(scenario, handout, index);
+        return `<option value="${escapeHtml(ref)}"${ref === selectedScenarioHandoutRef ? " selected" : ""}>${escapeHtml(handout.title || "ハンドアウト")} — ${escapeHtml(scenario.title)}</option>`;
+      }).join("")}`;
+      select.disabled = options.length === 0;
+    }
+    function renderScenarioHandoutDetails(character, publicView) {
+      if (!character.scenarioHandoutRef) return "";
+      const linked = findScenarioHandout(character.scenarioHandoutRef);
+      if (!linked || linked.handout.targetId !== `other:${character.id}`) return "";
+      const { scenario, handout } = linked;
+      const content = [handout.overview ? `<p><strong>概要</strong><br>${escapeHtml(handout.overview)}</p>` : "", !publicView && handout.content ? `<p><strong>内容</strong><br>${escapeHtml(handout.content)}</p>` : ""].filter(Boolean).join("");
+      return `<details class="entry-handout-details"><summary>ハンドアウトを閲覧: ${escapeHtml(handout.title || character.handout || "ハンドアウト")}</summary><p><strong>${escapeHtml(scenario.title)}</strong></p>${content || `<p>${publicView ? "公開できる概要はありません。" : "内容はまだ登録されていません。"}</p>`}</details>`;
+    }
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(characters));
+        document.getElementById("saveState").textContent = "保存しました";
+        return true;
+      } catch {
+        document.getElementById("saveState").textContent = "保存できませんでした。画像のサイズやメモの長さを調整してください。";
+        return false;
+      }
+    }
+    function renderList() {
+      const query = document.getElementById("search").value.trim().toLocaleLowerCase("ja");
+      const publicView = document.body.dataset.audienceMode === "public";
+      const visible = characters.filter(character => !publicView || !character.secret);
+      const filtered = visible.filter(character => [character.name, character.scenario, character.handout, character.creator, character.memo].some(value => String(value || "").toLocaleLowerCase("ja").includes(query)));
+      document.getElementById("count").textContent = `${visible.length} 人`;
+      if (!filtered.length) {
+        list.innerHTML = `<p class="empty">${visible.length ? "検索条件に合うキャラクターはいません。" : characters.length ? "公開できるキャラクターはまだいません。" : "まだキャラクターが登録されていません。左のフォームから追加できます。"}</p>`;
+        return;
+      }
+      list.innerHTML = [...filtered].sort((a,b) => (b.updatedAt || 0) - (a.updatedAt || 0)).map(character => `<article class="character-entry" data-id="${escapeHtml(character.id)}">
+        <div class="entry-top"><div class="entry-identity"><div class="entry-image">${character.image ? `<img src="${escapeHtml(character.image)}" alt="${escapeHtml(character.name)}の画像">` : "画像なし"}</div><div class="entry-title"><h3>${escapeHtml(character.name)}${character.secret ? '<span class="entry-secret">秘匿</span>' : ""}</h3>${character.scenario ? `<p class="entry-scenario">${escapeHtml(character.scenario)}</p>` : ""}</div></div>
+        <div class="entry-actions"><button class="button" type="button" data-action="edit" data-id="${escapeHtml(character.id)}">編集</button><button class="button danger" type="button" data-action="delete" data-id="${escapeHtml(character.id)}">削除</button></div></div>
+        <div class="entry-meta">${character.creator ? `<span>制作者: <a href="TRPG制作者管理.html?name=${encodeURIComponent(character.creator)}">${escapeHtml(character.creator)}</a></span>` : ""}${character.handout ? `<span>ハンドアウト: ${escapeHtml(character.handout)}</span>` : ""}</div>${renderScenarioHandoutDetails(character, publicView)}${character.memo ? `<details class="entry-memo-details"><summary>メモを表示</summary><p class="entry-memo">${escapeHtml(character.memo)}</p></details>` : ""}
+      </article>`).join("");
+    }
+    function resetForm() {
+      form.reset();
+      editingId = null;
+      currentImage = "";
+      selectedScenarioHandoutRef = "";
+      renderScenarioHandoutOptions("", "");
+      renderImage();
+      document.getElementById("formTitle").textContent = "新しいキャラクター";
+      document.getElementById("submitButton").textContent = "登録";
+      document.getElementById("cancelButton").hidden = true;
+    }
+    function resizeImage(file) {
+      return createImageBitmap(file).then(bitmap => {
+        const scale = Math.min(1, 1200 / bitmap.width, 1600 / bitmap.height);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        const context = canvas.getContext("2d");
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        return new Promise((resolve, reject) => canvas.toBlob(blob => {
+          if (!blob) return reject(new Error("画像を変換できませんでした。"));
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        }, "image/webp", 0.86));
+      });
+    }
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const character = {
+        id: editingId || makeId(),
+        name: document.getElementById("characterName").value.trim(),
+        scenario: document.getElementById("scenario").value.trim(),
+        handout: document.getElementById("handout").value.trim(),
+        scenarioHandoutRef: selectedScenarioHandoutRef,
+        creator: document.getElementById("creator").value.trim(),
+        memo: document.getElementById("memo").value.trim(),
+        image: currentImage,
+        secret: document.getElementById("secretCharacter").checked,
+        updatedAt: Date.now(),
+      };
+      characters = editingId ? characters.map(item => item.id === editingId ? character : item) : [...characters, character];
+      if (persist()) { resetForm(); renderList(); }
+    });
+    document.getElementById("imageFile").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (file.size > 20 * 1024 * 1024) {
+        document.getElementById("saveState").textContent = "20MB以下の画像を選択してください。";
+        event.target.value = "";
+        return;
+      }
+      try {
+        currentImage = await resizeImage(file);
+        renderImage();
+        document.getElementById("saveState").textContent = "画像を読み込みました";
+      } catch (error) {
+        document.getElementById("saveState").textContent = error.message;
+      }
+    });
+    document.getElementById("removeImageButton").addEventListener("click", () => {
+      currentImage = "";
+      document.getElementById("imageFile").value = "";
+      renderImage();
+    });
+    document.getElementById("cancelButton").addEventListener("click", resetForm);
+    document.getElementById("search").addEventListener("input", renderList);
+    document.getElementById("scenario").addEventListener("input", () => {
+      const linked = findScenarioHandout(selectedScenarioHandoutRef);
+      if (linked && linked.scenario.title !== document.getElementById("scenario").value.trim()) {
+        selectedScenarioHandoutRef = "";
+        document.getElementById("handout").value = "";
+      }
+      renderScenarioHandoutOptions(editingId || "", document.getElementById("scenario").value.trim());
+    });
+    document.getElementById("scenarioHandoutSelect").addEventListener("change", event => {
+      selectedScenarioHandoutRef = event.target.value;
+      const linked = findScenarioHandout(selectedScenarioHandoutRef);
+      if (linked) document.getElementById("handout").value = linked.handout.title || "";
+    });
+    document.getElementById("handout").addEventListener("input", () => {
+      const linked = findScenarioHandout(selectedScenarioHandoutRef);
+      if (linked && document.getElementById("handout").value.trim() !== linked.handout.title) {
+        selectedScenarioHandoutRef = "";
+        renderScenarioHandoutOptions(editingId || "", document.getElementById("scenario").value.trim());
+      }
+    });
+    list.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const character = characters.find(item => item.id === button.dataset.id);
+      if (!character) return;
+      if (button.dataset.action === "edit") {
+        editingId = character.id;
+        currentImage = character.image || "";
+        document.getElementById("characterName").value = character.name || "";
+        document.getElementById("scenario").value = character.scenario || "";
+        document.getElementById("handout").value = character.handout || "";
+        selectedScenarioHandoutRef = character.scenarioHandoutRef || "";
+        renderScenarioHandoutOptions(character.id, character.scenario || "");
+        document.getElementById("creator").value = character.creator || "";
+        document.getElementById("memo").value = character.memo || "";
+        document.getElementById("secretCharacter").checked = Boolean(character.secret);
+        document.getElementById("formTitle").textContent = "キャラクターを編集";
+        document.getElementById("submitButton").textContent = "変更を保存";
+        document.getElementById("cancelButton").hidden = false;
+        renderImage();
+        document.getElementById("characterName").focus();
+        form.scrollIntoView({ behavior:"smooth", block:"start" });
+      } else if (button.dataset.action === "delete" && confirm(`「${character.name}」を削除しますか？`)) {
+        characters = characters.filter(item => item.id !== character.id);
+        if (persist()) renderList();
+      }
+    });
+    window.addEventListener("audience-mode-change", renderList);
+    window.addEventListener("storage", event => {
+      if (event.key === SCENARIO_KEY || event.key === CREATOR_KEY) refreshOptions();
+      if (event.key === SCENARIO_RECORDS_KEY) {
+        scenarioRecords = loadArray(SCENARIO_RECORDS_KEY).filter(item => item && typeof item.id === "string" && typeof item.title === "string");
+        renderScenarioHandoutOptions(editingId || "", document.getElementById("scenario").value.trim());
+        renderList();
+      }
+      if (event.key === STORAGE_KEY) { characters = loadArray(STORAGE_KEY); renderList(); }
+    });
+    refreshOptions();
+    renderScenarioHandoutOptions("", "");
+    renderImage();
+    renderList();
+  </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2efe7">
+  <title>思い出 | TRPG</title>
+  <link rel="stylesheet" href="view-mode.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f2efe7;
+      --surface: #fffefa;
+      --ink: #242a26;
+      --muted: #72796f;
+      --green: #28634e;
+      --line: #d9d8ce;
+      --serif: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", Georgia, serif;
+      --sans: "Yu Gothic UI", "Meiryo", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); }
+    .topbar { position: sticky; top: 0; z-index: 30; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 max(24px, calc((100vw - 1120px) / 2)); border-bottom: 1px solid #d9d8ce; background: rgba(255,254,250,.96); }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: inherit; font: 18px var(--serif); text-decoration: none; }
+    .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--green); font: 17px Georgia, serif; }
+    .home-link { color: #1c493a; font-size: 12px; text-decoration: none; }
+    .home-link:hover { text-decoration: underline; }
+    main { width: min(100% - 40px, 1120px); min-height: calc(100vh - 72px); margin: 46px auto 0; padding-bottom: 64px; }
+    .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+    h1 { margin: 0; font: 34px/1.35 var(--serif); }
+    .memory-count { color: var(--muted); font-size: 13px; white-space: nowrap; }
+    .toolbar { display: flex; justify-content: flex-end; padding: 18px 0; }
+    .search { width: min(100%, 360px); height: 40px; padding: 0 12px; border: 1px solid #d5d6cb; border-radius: 3px; outline: none; background: var(--surface); color: var(--ink); font: inherit; }
+    .search:focus { border-color: #70917d; box-shadow: 0 0 0 3px rgba(40,99,78,.1); }
+    .memory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 18px; }
+    .memory-card { min-width: 0; overflow: hidden; border: 1px solid #d6d9d1; border-radius: 3px; background: var(--surface); animation: appear .24s ease-out both; }
+    .memory-image { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #e7e8df; }
+    .memory-placeholder { display: grid; place-items: center; aspect-ratio: 4 / 3; color: var(--muted); background: #e7e8df; font: 28px var(--serif); }
+    .memory-body { padding: 15px 16px 17px; }
+    .memory-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .character-name { min-width: 0; overflow-wrap: anywhere; color: var(--green); font-size: 13px; font-weight: 700; }
+    .secret-mark { flex: 0 0 auto; padding: 3px 6px; border: 1px solid #d9b8a9; color: #984f3f; font-size: 10px; }
+    .memory-note { margin: 11px 0 0; overflow-wrap: anywhere; white-space: pre-wrap; font: 14px/1.8 var(--sans); }
+    .memory-note.empty { color: var(--muted); font-size: 12px; }
+    .memory-related { margin: 11px 0 0; padding-top: 10px; border-top: 1px solid #e6e6dd; color: var(--muted); font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+    .empty-state { padding: 42px 18px; border-bottom: 1px solid var(--line); color: var(--muted); text-align: center; line-height: 1.8; }
+    @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    a:focus-visible { outline: 3px solid #d6aa57; outline-offset: 3px; }
+    @media (max-width: 760px) {
+      .topbar { min-height: 64px; padding: 0 18px; }
+      .brand { font-size: 15px; }
+      main { width: min(100% - 32px, 600px); margin-top: 32px; }
+      h1 { font-size: 29px; }
+      .page-heading { align-items: start; flex-direction: column; gap: 5px; }
+      .toolbar { justify-content: stretch; }
+      .search { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">✦</span><span>TRPG 思い出</span></a>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="audience-switch" role="group" aria-label="表示モード">
+        <button type="button" data-audience-mode="public" aria-pressed="false">公開ビュー</button>
+        <button type="button" data-audience-mode="private" aria-pressed="true">非公開ビュー</button>
+      </div>
+      <a class="home-link" href="index.html">← 管理室へ戻る</a>
+    </div>
+  </header>
+  <main>
+    <div class="page-heading">
+      <h1>思い出</h1>
+      <span class="memory-count" id="memoryCount" aria-live="polite">読み込み中...</span>
+    </div>
+    <div class="toolbar"><input class="search" id="memorySearch" type="search" placeholder="キャラクター名・メモで検索" aria-label="キャラクター名・メモで検索"></div>
+    <section class="memory-grid" id="memoryList" aria-live="polite"><p class="empty-state">キャラクターの思い出を読み込んでいます。</p></section>
+  </main>
+  <script>
+    const databaseName = "trpg-character-library";
+    const memoryList = document.getElementById("memoryList");
+    const memoryCount = document.getElementById("memoryCount");
+    const memorySearch = document.getElementById("memorySearch");
+    let memories = [];
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[character]);
+    }
+
+    async function readCharacters() {
+      if (typeof indexedDB.databases === "function") {
+        const databases = await indexedDB.databases();
+        if (!databases.some(item => item.name === databaseName)) return [];
+      }
+      const database = await new Promise((resolve, reject) => {
+        const request = indexedDB.open(databaseName);
+        request.onupgradeneeded = () => request.transaction.abort();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => request.error?.name === "AbortError" ? resolve(null) : reject(request.error);
+      });
+      if (!database || !database.objectStoreNames.contains("characters")) {
+        database?.close();
+        return [];
+      }
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction("characters", "readonly");
+        const read = transaction.objectStore("characters").getAll();
+        read.onsuccess = () => resolve(read.result);
+        read.onerror = () => reject(read.error);
+        transaction.oncomplete = () => database.close();
+        transaction.onabort = () => database.close();
+      });
+    }
+
+    function collectMemories(characters) {
+      const byId = new Map(characters.map(character => [character.id, character]));
+      const collected = new Map();
+      characters.forEach(character => {
+        (character.fields?.memories || []).forEach((memory, index) => {
+          const sourceCharacter = memory.sharedSourceCharacterId ? byId.get(memory.sharedSourceCharacterId) : character;
+          const sourceMemory = sourceCharacter?.fields?.memories?.find(item => item.id === memory.sharedMemoryId) || memory;
+          if (!String(sourceMemory.note || "").trim() && !sourceMemory.image) return;
+          const owner = sourceCharacter || character;
+          const key = `${owner.id}:${sourceMemory.id || `${character.id}:${index}`}`;
+          if (collected.has(key)) return;
+          const sharedIds = sourceMemory.sharedWithCharacterIds || [];
+          const sharedNames = sharedIds.map(id => byId.get(id)?.fields?.name).filter(Boolean);
+          const relatedNames = (sourceMemory.relatedPeople || []).map(id => owner.relationships?.find(person => person.id === id)?.name).filter(Boolean);
+          collected.set(key, {
+            characterName: owner.fields?.name || "名前未設定",
+            image: sourceMemory.image || "",
+            note: sourceMemory.note || "",
+            secret: Boolean(sourceMemory.secret),
+            relatedNames,
+            sharedNames
+          });
+        });
+      });
+      return [...collected.values()].sort((left, right) => left.characterName.localeCompare(right.characterName, "ja"));
+    }
+
+    function renderMemories() {
+      const query = memorySearch.value.trim().toLocaleLowerCase();
+      const filtered = memories.filter(memory => [memory.characterName, memory.note, ...memory.relatedNames, ...memory.sharedNames].join(" ").toLocaleLowerCase().includes(query));
+      memoryCount.textContent = query ? `${filtered.length} / ${memories.length} 件` : `${memories.length} 件`;
+      if (!filtered.length) {
+        memoryList.innerHTML = `<p class="empty-state">${memories.length ? "検索条件に一致する思い出はありません。" : "まだ思い出が登録されていません。キャラクター書庫の「思い出」から追加できます。"}</p>`;
+        return;
+      }
+      memoryList.innerHTML = filtered.map(memory => `<article class="memory-card">${memory.image ? `<img class="memory-image" src="${escapeHtml(memory.image)}" alt="${escapeHtml(memory.characterName)}の思い出" loading="lazy">` : `<div class="memory-placeholder" aria-hidden="true">✦</div>`}<div class="memory-body"><div class="memory-meta"><span class="character-name">${escapeHtml(memory.characterName)}</span>${memory.secret ? `<span class="secret-mark">秘匿</span>` : ""}</div><p class="memory-note ${memory.note ? "" : "empty"}">${escapeHtml(memory.note || "メモはありません")}</p>${memory.relatedNames.length ? `<p class="memory-related">関係する人: ${memory.relatedNames.map(escapeHtml).join("、")}</p>` : ""}${memory.sharedNames.length ? `<p class="memory-related">共有先: ${memory.sharedNames.map(escapeHtml).join("、")}</p>` : ""}</div></article>`).join("");
+    }
+
+    memorySearch.addEventListener("input", renderMemories);
+    readCharacters().then(characters => {
+      memories = collectMemories(characters);
+      renderMemories();
+    }).catch(error => {
+      memoryCount.textContent = "読み込み失敗";
+      memoryList.innerHTML = `<p class="empty-state">思い出を読み込めませんでした。キャラクター書庫を開けるブラウザーで再読み込みしてください。<br>${escapeHtml(error.message)}</p>`;
+    });
+  </script>
+  <script src="view-mode.js"></script>
+</body>
+</html>

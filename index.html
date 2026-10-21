@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f1e8">
+  <title>TRPG管理室</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f1e8;
+      --surface: #fffefa;
+      --ink: #262d28;
+      --muted: #747b72;
+      --line: #deded3;
+      --green: #28634e;
+      --green-dark: #1c493a;
+      --coral: #bd614c;
+      --gold: #d6aa57;
+      --serif: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", Georgia, serif;
+      --sans: "Yu Gothic UI", "Meiryo", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); }
+    button, a { font: inherit; }
+    .topbar { position: sticky; top: 0; z-index: 30; min-height: 74px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 6vw; border-bottom: 1px solid #d9d8ce; background: rgba(255,254,250,.96); }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: inherit; text-decoration: none; font: 19px var(--serif); }
+    .brand-mark { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--green); font: 17px Georgia, serif; }
+    .top-note { color: var(--muted); font-size: 12px; }
+    main { width: min(100% - 48px, 1080px); margin: 54px auto 80px; }
+    .intro { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 28px; padding: 0 0 27px; border-bottom: 1px solid #d6d7cc; }
+    .eyebrow { margin: 0 0 10px; color: var(--coral); font-size: 11px; font-weight: 700; letter-spacing: 1.4px; }
+    h1 { margin: 0; font: 36px/1.35 var(--serif); }
+    .intro-copy { max-width: 480px; margin: 10px 0 0; color: var(--muted); font-size: 13px; line-height: 1.9; }
+    .seal { width: 70px; height: 70px; display: grid; place-items: center; border: 1px solid #c7c8b9; border-radius: 50%; color: var(--green); font: 30px var(--serif); }
+    .tabs { display: flex; gap: 6px; margin: 28px 0 0; border-bottom: 1px solid var(--line); }
+    .tab { position: relative; min-width: 126px; padding: 13px 18px 14px; border: 0; color: var(--muted); background: transparent; cursor: pointer; font-size: 14px; }
+    .tab[aria-selected="true"] { color: var(--green-dark); font-weight: 700; }
+    .tab[aria-selected="true"]::after { position: absolute; right: 12px; bottom: -1px; left: 12px; height: 3px; content: ""; background: var(--green); }
+    .tab:focus-visible, a:focus-visible { outline: 3px solid #d6aa57; outline-offset: 3px; }
+    .workspace { min-height: 290px; padding: 38px 0; animation: arrive .24s ease-out; }
+    @keyframes arrive { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .module { display: grid; grid-template-columns: minmax(0, 1fr) 210px; align-items: center; gap: 44px; padding: 28px 0 34px; border-bottom: 1px solid var(--line); }
+    .module-kicker { margin: 0 0 8px; color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: 1.2px; }
+    h2 { margin: 0; font: 25px/1.45 var(--serif); }
+    .module-copy { max-width: 580px; margin: 10px 0 0; color: var(--muted); font-size: 13px; line-height: 1.9; }
+    .module-action { display: flex; justify-content: flex-end; }
+    .button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 10px; padding: 0 17px; border: 1px solid var(--green); border-radius: 3px; color: white; background: var(--green); text-decoration: none; font-size: 13px; transition: background .15s, transform .15s; }
+    .button:hover { background: var(--green-dark); }
+    .button:active { transform: translateY(1px); }
+    .button span { font-size: 17px; }
+    .future { max-width: 720px; padding: 31px 0; }
+    .future-label { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 15px; color: var(--coral); font-size: 11px; font-weight: 700; }
+    .future-label::before { width: 8px; height: 8px; border-radius: 50%; content: ""; background: var(--gold); }
+    .future h2 { font-size: 27px; }
+    .future p { max-width: 570px; margin: 11px 0 0; color: var(--muted); font-size: 13px; line-height: 1.9; }
+    footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .footer-mark { color: var(--green); font-family: var(--serif); }
+    [hidden] { display: none !important; }
+    @media (max-width: 640px) {
+      .topbar { min-height: 64px; padding: 0 20px; }
+      .brand { font-size: 16px; }
+      .top-note { font-size: 10px; }
+      main { width: min(100% - 36px, 1080px); margin-top: 37px; }
+      .intro { grid-template-columns: minmax(0, 1fr); gap: 15px; }
+      h1 { font-size: 30px; }
+      .seal { display: none; }
+      .tab { min-width: 0; flex: 1; padding-right: 10px; padding-left: 10px; }
+      .workspace { min-height: 260px; padding-top: 22px; }
+      .module { grid-template-columns: 1fr; gap: 20px; padding: 24px 0; }
+      .module-action { justify-content: flex-start; }
+      footer { align-items: flex-start; flex-direction: column; gap: 7px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="TRPG管理室ホーム">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span>TRPG 管理室</span>
+    </a>
+    <span class="top-note">物語の準備と記録</span>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">TABLETOP ROLE-PLAYING GAME</p>
+        <h1 id="pageTitle">登場人物の管理</h1>
+        <p class="intro-copy">プレイヤーキャラクターやNPCの情報をまとめる場所です。</p>
+      </div>
+      <div class="seal" aria-hidden="true">✦</div>
+    </section>
+    <div class="tabs" role="tablist" aria-label="管理メニュー">
+      <button class="tab" id="playerTab" type="button" role="tab" aria-selected="true" aria-controls="playerPanel" tabindex="0">TRPG</button>
+      <button class="tab" id="creatorTab" type="button" role="tab" aria-selected="false" aria-controls="creatorPanel" tabindex="-1">関係</button>
+    </div>
+    <section class="workspace" id="playerPanel" role="tabpanel" aria-labelledby="playerTab">
+      <article class="module">
+        <div>
+          <p class="module-kicker">PLAYER CHARACTERS</p>
+          <h2>キャラクター書庫</h2>
+          <p class="module-copy">設定や立ち絵、関係性、セッションの思い出をキャラクターごとに記録できます。</p>
+        </div>
+        <div class="module-action">
+          <a class="button" href="TRPGキャラクター管理.html"><span aria-hidden="true">↗</span>書庫を開く</a>
+        </div>
+      </article>
+      <article class="module">
+        <div>
+          <p class="module-kicker">OTHER CHARACTERS</p>
+          <h2>他キャラ図書館</h2>
+          <p class="module-copy">PCキャラクターの名前、シナリオ、制作者、ハンドアウト、メモを登録できます。</p>
+        </div>
+        <div class="module-action">
+          <a class="button" href="他キャラ図書館.html"><span aria-hidden="true">↗</span>図書館を開く</a>
+        </div>
+      </article>
+      <article class="module">
+        <div>
+          <p class="module-kicker">SCENARIO ARCHIVE</p>
+          <h2>シナリオ</h2>
+          <p class="module-copy">シナリオの概要やハンドアウト、秘匿内容、登場人物をまとめて管理できます。</p>
+        </div>
+        <div class="module-action">
+          <a class="button" href="TRPGシナリオ管理.html"><span aria-hidden="true">↗</span>シナリオを開く</a>
+        </div>
+      </article>
+      <article class="module">
+        <div>
+          <p class="module-kicker">NON-PLAYER CHARACTERS</p>
+          <h2>NPC登録</h2>
+          <p class="module-copy">NPCを登録できます。シナリオ管理で新規作成・編集したNPCも一覧に追加され、同じデータとして同期されます。</p>
+        </div>
+        <div class="module-action">
+          <a class="button" href="TRPG_NPC管理.html"><span aria-hidden="true">↗</span>NPC一覧を開く</a>
+        </div>
+      </article>
+      <article class="module">
+        <div>
+          <p class="module-kicker">MEMORIES</p>
+          <h2>思い出</h2>
+          <p class="module-copy">キャラクターと過ごした思い出を記録します。</p>
+        </div>
+        <div class="module-action">
+          <a class="button" href="TRPG思い出.html"><span aria-hidden="true">↗</span>思い出を開く</a>
+        </div>
+      </article>
+    </section>
+    <section class="workspace" id="creatorPanel" role="tabpanel" aria-labelledby="creatorTab" hidden>
+      <article class="module">
+        <div>
+          <p class="module-kicker">MY PROFILE</p>
+          <h2>マイプロフィール</h2>
+          <p class="module-copy">TRPGの遊び方や好きなものをまとめた自己紹介ページを作成できます。</p>
+        </div>
+        <div class="module-action">
+          <a class="button" href="マイプロフィール.html"><span aria-hidden="true">↗</span>プロフィールを開く</a>
+        </div>
+      </article>
+      <article class="module">
+        <div>
+        <p class="module-kicker">CREATORS</p>
+        <h2>制作者・作成者</h2>
+        <p class="module-copy">プロフィール画像、名前、X、DiscordのユーザーID、メモをまとめて記録できます。Discord IDは一覧からすぐにコピーできます。</p>
+        </div>
+        <div class="module-action">
+          <a class="button" href="TRPG制作者管理.html"><span aria-hidden="true">↗</span>一覧を開く</a>
+        </div>
+      </article>
+      <article class="module">
+        <div>
+          <p class="module-kicker">CHAT ARCHIVE</p>
+          <h2>記憶</h2>
+          <p class="module-copy">制作者・作成者との記録を、キャラクターの思い出とは分けて登録・閲覧できます。</p>
+        </div>
+        <div class="module-action">
+          <a class="button" href="TRPG記憶.html"><span aria-hidden="true">↗</span>一覧を開く</a>
+        </div>
+      </article>
+    </section>
+    <footer>
+      <span>このブラウザーでTRPGの登場人物を整理</span>
+      <span class="footer-mark">TRPG 管理室</span>
+    </footer>
+  </main>
+  <script>
+    "use strict";
+    const tabs = [...document.querySelectorAll('[role="tab"]')];
+    const panels = tabs.map(tab => document.getElementById(tab.getAttribute("aria-controls")));
+    function selectTab(selectedIndex, moveFocus = false) {
+      tabs.forEach((tab, index) => {
+        const selected = index === selectedIndex;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        panels[index].hidden = !selected;
+      });
+      if (moveFocus) tabs[selectedIndex].focus();
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => selectTab(index));
+      tab.addEventListener("keydown", event => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        selectTab((index + direction + tabs.length) % tabs.length, true);
+      });
+    });
+  </script>
+</body>
+</html>

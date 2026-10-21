@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2efe7">
+  <title>NPC登録 | TRPG</title>
+  <link rel="stylesheet" href="view-mode.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f2efe7;
+      --surface: #fffefa;
+      --ink: #242a26;
+      --muted: #72796f;
+      --line: #deded3;
+      --green: #28634e;
+      --green-dark: #1c493a;
+      --coral: #c15d46;
+      --serif: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", Georgia, serif;
+      --sans: "Yu Gothic UI", "Meiryo", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { position: sticky; top: 0; z-index: 30; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 max(24px, calc((100vw - 1120px) / 2)); border-bottom: 1px solid #d9d8ce; background: rgba(255,254,250,.96); }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: inherit; font: 18px var(--serif); text-decoration: none; }
+    .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--green); font: 17px Georgia, serif; }
+    .home-link { color: var(--green-dark); font-size: 12px; text-decoration: none; }
+    .home-link:hover { text-decoration: underline; }
+    .header-links { display: flex; align-items: center; gap: 16px; }
+    main { width: min(100% - 40px, 1040px); margin: 46px auto 72px; }
+    .intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 24px; border-bottom: 1px solid #d6d7cc; }
+    .eyebrow { margin: 0 0 9px; color: var(--coral); font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+    h1 { margin: 0; font: 34px/1.35 var(--serif); }
+    .intro-copy { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .count { flex: 0 0 auto; padding-bottom: 4px; color: var(--muted); font-size: 12px; }
+    .layout { display: grid; grid-template-columns: minmax(270px, 350px) minmax(0, 1fr); align-items: start; gap: 32px; padding-top: 30px; }
+    .form-panel { position: sticky; top: 22px; padding: 20px; border: 1px solid #d6d9d1; border-top: 3px solid var(--npc-color, var(--green)); border-radius: 3px; background: var(--surface); box-shadow: 0 6px 18px rgba(30,35,31,.08); }
+    .form-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    h2 { margin: 0; font: 20px var(--serif); }
+    .form-hint { color: var(--muted); font-size: 10px; }
+    .fields { display: grid; gap: 14px; }
+    .field { display: grid; gap: 6px; }
+    .secret-field { display: flex; align-items: center; gap: 9px; margin: 18px 0 0; padding: 11px 12px; border: 1px solid #e5c4b8; border-radius: 3px; background: #fff8f5; color: #8e4034; font-size: 12px; cursor: pointer; }
+    .secret-field input { width: 16px; height: 16px; margin: 0; accent-color: #a84e40; }
+    .field label { color: #555e56; font-size: 11px; }
+    .field input, .field textarea, .field select, .search { width: 100%; min-width: 0; border: 1px solid #d8d9cf; border-radius: 3px; outline: none; background: #fffefa; color: var(--ink); font-size: 13px; }
+    .field input { height: 39px; padding: 0 10px; }
+    .color-entry { display: grid; grid-template-columns: minmax(0, 1fr) 48px; gap: 8px; }
+    .color-entry input[type="color"] { width: 48px; height: 39px; padding: 4px; cursor: pointer; }
+    .field select { height: 39px; padding: 0 9px; }
+    .field textarea { min-height: 100px; padding: 9px 10px; line-height: 1.7; resize: vertical; }
+    .field input:focus, .field textarea:focus, .field select:focus, .search:focus, .scenario-add input:focus { border-color: #70917d; box-shadow: 0 0 0 3px rgba(40,99,78,.1); }
+    .scenario-entry { display: grid; grid-template-columns: minmax(0, 1fr) 38px; gap: 7px; }
+    .scenario-entry .button { width: 38px; padding: 0; font-size: 17px; }
+    .scenario-add { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; margin-top: 8px; }
+    .scenario-add input { min-width: 0; height: 35px; padding: 0 8px; border: 1px solid #d8d9cf; border-radius: 3px; outline: none; background: var(--surface); font-size: 12px; }
+    .scenario-add .button { min-height: 35px; padding: 0 9px; }
+    .npc-image { position: relative; display: grid; width: 100%; aspect-ratio: 4 / 3; place-items: center; overflow: hidden; margin-bottom: 10px; border: 1px dashed color-mix(in srgb, var(--npc-color, #888888) 45%, #bfc6bb); border-radius: 3px; background-color: var(--npc-color, #888888); background-image: none; background-position: center; background-repeat: no-repeat; color: white; font-size: 12px; text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+    .npc-image.has-image { border-style: solid; background-color: var(--npc-color, #888888); background-image: none; }
+    .npc-image.pattern-lines { background-image: repeating-linear-gradient(135deg, transparent 0 12px, color-mix(in srgb, var(--pattern-ink, #fff) 78%, transparent) 12px 14px); }
+    .npc-image.pattern-dots { background-image: radial-gradient(circle, color-mix(in srgb, var(--pattern-ink, #fff) 88%, transparent) 1.8px, transparent 2.2px), radial-gradient(circle, color-mix(in srgb, var(--pattern-ink, #fff) 88%, transparent) 1.8px, transparent 2.2px); background-size: 16px 16px; background-position: 0 0, 8px 8px; }
+    .npc-image.pattern-grid { background-image: linear-gradient(color-mix(in srgb, var(--pattern-ink, #fff) 76%, transparent) 1.5px, transparent 1.5px), linear-gradient(90deg, color-mix(in srgb, var(--pattern-ink, #fff) 76%, transparent) 1.5px, transparent 1.5px); background-size: 18px 18px; }
+    .npc-image.pattern-diagonal-grid { background-image: repeating-linear-gradient(45deg, transparent 0 12px, color-mix(in srgb, var(--pattern-ink, #fff) 76%, transparent) 12px 13.5px, transparent 13.5px 24px), repeating-linear-gradient(-45deg, transparent 0 12px, color-mix(in srgb, var(--pattern-ink, #fff) 76%, transparent) 12px 13.5px, transparent 13.5px 24px); }
+    .npc-image.pattern-circles { background-image: repeating-radial-gradient(circle at 50% 50%, transparent 0 12px, color-mix(in srgb, var(--pattern-ink, #fff) 80%, transparent) 13px 14.5px); background-size: 100% 100%; }
+    .npc-image.pattern-big-circle { background-color: var(--pattern-ink, #fff); background-image: radial-gradient(circle at center, var(--npc-color, #888888) 0 63%, transparent 64%); background-size: 100% 100%; }
+    .npc-image.pattern-big-circle-inverted { background-color: var(--npc-color, #888888); background-image: radial-gradient(circle at center, var(--pattern-ink, #fff) 0 63%, transparent 64%); background-size: 100% 100%; }
+    .npc-image img { width: 100%; height: 100%; object-fit: contain; }
+    .image-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+    .image-actions input { display: none; }
+    .image-note { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .background-settings { display: grid; gap: 9px; margin: 13px 0 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .background-control { display: grid; grid-template-columns: 78px minmax(0, 1fr); align-items: center; gap: 8px; }
+    .background-control label { color: var(--muted); font-size: 11px; }
+    .background-control select { width: 100%; min-width: 0; height: 35px; padding: 0 8px; border: 1px solid #d8d9cf; border-radius: 3px; background: var(--surface); color: var(--ink); font: inherit; font-size: 11px; }
+    .background-control .image-actions { grid-column: 2; }
+    .entry-image { background-position: center; background-repeat: no-repeat; background-size: cover; }
+    .entry-image.has-image { background-color: var(--npc-color, #888888); }
+    .entry-image.pattern-lines { background-image: repeating-linear-gradient(135deg, transparent 0 10px, color-mix(in srgb, var(--pattern-ink, #fff) 78%, transparent) 10px 12px); }
+    .entry-image.pattern-dots { background-image: radial-gradient(circle, color-mix(in srgb, var(--pattern-ink, #fff) 88%, transparent) 1.4px, transparent 1.8px), radial-gradient(circle, color-mix(in srgb, var(--pattern-ink, #fff) 88%, transparent) 1.4px, transparent 1.8px); background-size: 12px 12px; background-position: 0 0, 6px 6px; }
+    .entry-image.pattern-grid { background-image: linear-gradient(color-mix(in srgb, var(--pattern-ink, #fff) 76%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--pattern-ink, #fff) 76%, transparent) 1px, transparent 1px); background-size: 12px 12px; }
+    .entry-image.pattern-diagonal-grid { background-image: repeating-linear-gradient(45deg, transparent 0 8px, color-mix(in srgb, var(--pattern-ink, #fff) 76%, transparent) 8px 9px, transparent 9px 16px), repeating-linear-gradient(-45deg, transparent 0 8px, color-mix(in srgb, var(--pattern-ink, #fff) 76%, transparent) 8px 9px, transparent 9px 16px); }
+    .entry-image.pattern-circles { background-image: repeating-radial-gradient(circle at 50% 50%, transparent 0 8px, color-mix(in srgb, var(--pattern-ink, #fff) 80%, transparent) 9px 10px); }
+    .entry-image.pattern-big-circle { background-color: var(--pattern-ink, #fff); background-image: radial-gradient(circle at center, var(--npc-color, #888888) 0 63%, transparent 64%); }
+    .entry-image.pattern-big-circle-inverted { background-color: var(--npc-color, #888888); background-image: radial-gradient(circle at center, var(--pattern-ink, #fff) 0 63%, transparent 64%); }
+    .required { color: var(--coral); }
+    .form-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .button { min-height: 38px; padding: 0 13px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--ink); font-size: 12px; }
+    .button:hover { border-color: #9eaa9e; background: #f8f8f1; }
+    .button.primary { border-color: var(--green); background: var(--green); color: white; }
+    .button.primary:hover { background: var(--green-dark); }
+    .button.danger { color: #a54234; }
+    .button[hidden] { display: none; }
+    .save-state { min-height: 18px; margin: 12px 0 0; color: var(--muted); font-size: 11px; }
+    .list-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .list-head h2 { font-size: 21px; }
+    .search { max-width: 230px; height: 36px; padding: 0 10px; }
+    .npc-list { display: grid; gap: 10px; }
+    .npc-entry { padding: 15px 16px; border: 1px solid var(--line); border-radius: 3px; background: rgba(255,254,250,.82); box-shadow: 0 2px 6px rgba(38,53,42,.04); animation: appear .2s ease-out; }
+    @keyframes appear { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .entry-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .entry-identity { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: start; gap: 13px; min-width: 0; }
+    .entry-image { display: grid; width: 72px; aspect-ratio: 3 / 4; place-items: center; overflow: hidden; border: 2px solid color-mix(in srgb, var(--npc-color, #888888) 55%, var(--line)); border-radius: 3px; background: color-mix(in srgb, var(--npc-color, #888888) 14%, #fffefa); color: var(--muted); font-size: 9px; }
+    .entry-image img { width: 100%; height: 100%; object-fit: cover; }
+    .entry-title { min-width: 0; }
+    .entry-title h3 { margin: 0; overflow-wrap: anywhere; font: 18px/1.45 var(--serif); }
+    .entry-color { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border: 1px solid #00000020; border-radius: 50%; vertical-align: 1px; }
+    .entry-secret { display: inline-block; margin-left: 7px; padding: 2px 6px; border: 1px solid #e5c4b8; border-radius: 3px; color: #9a4d3f; font-size: 10px; vertical-align: 2px; }
+    .entry-scenario { margin: 4px 0 0; color: var(--green-dark); font-size: 11px; overflow-wrap: anywhere; }
+    .entry-actions { display: flex; flex: 0 0 auto; gap: 6px; }
+    .entry-actions .button { min-height: 31px; padding: 0 9px; font-size: 11px; }
+    .entry-meta { display: flex; flex-wrap: wrap; gap: 5px 14px; margin-top: 12px; color: var(--muted); font-size: 11px; }
+    .entry-meta a { color: var(--green-dark); text-underline-offset: 2px; }
+    .entry-memo { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid #e5e4db; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.8; }
+    .entry-memo:empty { display: none; }
+    .empty { padding: 28px 4px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) {
+      .topbar { min-height: 64px; padding: 0 18px; }
+      .brand { font-size: 15px; }
+      main { width: min(100% - 32px, 600px); margin-top: 32px; }
+      .intro { align-items: flex-start; flex-direction: column; gap: 7px; }
+      h1 { font-size: 29px; }
+      .layout { grid-template-columns: 1fr; gap: 28px; padding-top: 22px; }
+      .form-panel { position: static; }
+    }
+    @media (max-width: 480px) {
+      .topbar { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+      .header-links { gap: 12px; }
+      .list-head { align-items: stretch; flex-direction: column; gap: 10px; }
+      .search { max-width: none; }
+      .entry-top { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">✦</span><span>TRPG NPC書庫</span></a>
+    <div class="header-links">
+      <div class="audience-switch" role="group" aria-label="表示モード">
+        <button type="button" data-audience-mode="public" aria-pressed="false">公開ビュー</button>
+        <button type="button" data-audience-mode="private" aria-pressed="true">非公開ビュー</button>
+      </div>
+      <a class="home-link" href="TRPGシナリオ管理.html">シナリオ一覧</a>
+      <a class="home-link" href="index.html">← 管理室へ戻る</a>
+    </div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">NON-PLAYER CHARACTERS</p>
+        <h1 id="pageTitle">NPC登録</h1>
+        <p class="intro-copy">NPCの一覧と登録場所です。シナリオ管理で新規作成・編集したNPCも表示され、同じデータとして同期されます。</p>
+      </div>
+      <p class="count" id="count" aria-live="polite">0 人</p>
+    </section>
+    <div class="layout">
+      <form class="form-panel" id="npcForm">
+        <div class="form-heading"><h2 id="formTitle">新しいNPC</h2><span class="form-hint"><span class="required">*</span> 必須</span></div>
+        <div class="image-field">
+          <div class="npc-image" id="imagePreview" aria-label="NPC画像プレビュー">画像未設定</div>
+          <div class="image-actions">
+            <label class="button" for="imageFile">画像を選択</label>
+            <input id="imageFile" type="file" accept="image/*">
+            <button class="button danger" type="button" id="removeImageButton" hidden>画像を削除</button>
+          </div>
+          <p class="image-note">画像は保存時に縮小されます（元画像20MB以下）</p>
+        </div>
+        <div class="field color-field">
+          <label for="themeColor">イメージカラー</label>
+          <div class="color-entry"><input id="themeColor" type="text" value="#888888" placeholder="#888888" autocomplete="off" aria-label="イメージカラーコード"><input id="themeColorPicker" type="color" value="#888888" aria-label="イメージカラーを選択"></div>
+        </div>
+        <div class="background-settings" aria-label="画像の背景設定">
+          <div class="background-control"><label for="backgroundPattern">背景</label><select id="backgroundPattern"><option value="solid">ベタ塗り</option><option value="lines">斜線</option><option value="dots">ドット</option><option value="grid">格子</option><option value="diagonal-grid">斜め格子</option><option value="circles">円模様</option><option value="big-circle">大きな丸</option><option value="big-circle-inverted">大きな丸（反転）</option><option value="custom">自分の画像</option></select></div>
+          <div class="background-control"><label for="backgroundPatternColor">模様色</label><select id="backgroundPatternColor"><option value="white">白</option><option value="black">黒</option></select></div>
+          <div class="background-control" id="customBackgroundControls" hidden><label>背景画像</label><div class="image-actions"><label class="button" for="backgroundFile">画像を選ぶ</label><input id="backgroundFile" type="file" accept="image/*"><button class="button danger" type="button" id="removeBackgroundButton" hidden>背景を削除</button></div></div>
+          <div class="background-control" id="backgroundFitControl" hidden><label for="backgroundFit">表示方法</label><select id="backgroundFit"><option value="cover">枠に合わせる</option><option value="contain">全体を表示</option><option value="tile">タイル状に繰り返す</option></select></div>
+        </div>
+        <label class="secret-field"><input id="secretCharacter" type="checkbox">秘匿キャラ（公開ビューでは表示しない）</label>
+        <div class="fields" id="fields"></div>
+        <div class="form-actions">
+          <button class="button primary" type="submit" id="submitButton">NPCを登録</button>
+          <button class="button" type="button" id="cancelButton" hidden>編集をやめる</button>
+        </div>
+        <p class="save-state" id="saveState" aria-live="polite">このブラウザーに保存されます</p>
+      </form>
+      <section aria-labelledby="listTitle">
+        <div class="list-head">
+          <h2 id="listTitle">登録済みNPC</h2>
+          <input class="search" id="search" type="search" placeholder="名前・シナリオで検索" aria-label="NPCを検索">
+        </div>
+        <div class="npc-list" id="npcList" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    "use strict";
+
+    const DATABASE_NAME = "trpg-npc-library";
+    const LEGACY_STORAGE_KEY = "trpg-npc-library";
+    const SCENARIO_STORAGE_KEY = "trpg-npc-scenarios";
+    const SCENARIO_RECORDS_STORAGE_KEY = "trpg-scenarios";
+    const NPC_LIBRARY_UPDATED_KEY = "trpg-npc-library-updated";
+    const CREATOR_STORAGE_KEY = "trpg-npc-creators";
+    const NPC_FIELDS = [
+      { key: "name", label: "名前", type: "text", required: true, placeholder: "NPCの名前" },
+      { key: "scenario", label: "シナリオ名", type: "scenario" },
+      { key: "creator", label: "制作者・作成者", type: "creator" },
+      { key: "memo", label: "メモ", type: "textarea", placeholder: "人物についてのメモ" },
+    ];
+    const form = document.getElementById("npcForm");
+    const fieldsElement = document.getElementById("fields");
+    const npcList = document.getElementById("npcList");
+    const saveState = document.getElementById("saveState");
+    let database;
+    let npcs = [];
+    let scenarios = loadScenarios();
+    let creators = loadCreators();
+    let editingId = null;
+    let currentImage = "";
+    let currentColor = "#888888";
+    let currentBackground = { pattern: "solid", patternColor: "white", customBackground: "", fit: "cover" };
+
+    function loadScenarios() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SCENARIO_STORAGE_KEY) || "[]");
+        return Array.isArray(saved) ? saved.filter(value => typeof value === "string" && value.trim()) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function loadCreators() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(CREATOR_STORAGE_KEY) || "[]");
+        return Array.isArray(saved) ? saved.filter(value => typeof value === "string" && value.trim()) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DATABASE_NAME, 2);
+        request.onupgradeneeded = () => {
+          if (!request.result.objectStoreNames.contains("npcs")) request.result.createObjectStore("npcs", { keyPath: "id" });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function readAll() {
+      return new Promise((resolve, reject) => {
+        const request = database.transaction("npcs", "readonly").objectStore("npcs").getAll();
+        request.onsuccess = () => resolve(request.result.sort((left, right) => (right.updatedAt || 0) - (left.updatedAt || 0)));
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function mergeScenarioNpcs(records) {
+      let scenarios;
+      try {
+        scenarios = JSON.parse(localStorage.getItem(SCENARIO_RECORDS_STORAGE_KEY) || "[]");
+      } catch (error) {
+        throw new Error(`シナリオ内NPCを読み込めませんでした: ${error.message}`);
+      }
+      if (!Array.isArray(scenarios)) throw new Error("保存されたシナリオ情報の形式が正しくありません");
+      const byId = new Map(records.map(npc => [npc.id, npc]));
+      scenarios.forEach(scenario => {
+        (Array.isArray(scenario.npcs) ? scenario.npcs : []).forEach(npc => {
+          if (!npc || typeof npc.id !== "string") return;
+          const existing = byId.get(npc.id);
+          if (existing && (existing.updatedAt || 0) > (npc.updatedAt || 0)) return;
+          byId.set(npc.id, {
+            ...npc,
+            fields: { ...(npc.fields || {}), scenario: npc.fields?.scenario || scenario.title },
+          });
+        });
+      });
+      return [...byId.values()].sort((left, right) => (right.updatedAt || 0) - (left.updatedAt || 0));
+    }
+
+    function syncNpcToScenarios(npc) {
+      let stored;
+      try {
+        stored = JSON.parse(localStorage.getItem(SCENARIO_RECORDS_STORAGE_KEY) || "[]");
+      } catch (error) {
+        throw new Error(`シナリオ内NPCを更新できませんでした: ${error.message}`);
+      }
+      if (!Array.isArray(stored)) throw new Error("保存されたシナリオ情報の形式が正しくありません");
+      let changed = false;
+      const updated = stored.map(scenario => {
+        if (!Array.isArray(scenario.npcs)) return scenario;
+        let scenarioChanged = false;
+        const scenarioNpcs = scenario.npcs.map(existing => {
+          if (existing?.id !== npc.id) return existing;
+          scenarioChanged = true;
+          return {
+            ...npc,
+            fields: { ...(npc.fields || {}), scenario: scenario.title },
+          };
+        });
+        if (!scenarioChanged) return scenario;
+        changed = true;
+        return {
+          ...scenario,
+          npcs: scenarioNpcs,
+          npcIds: scenarioNpcs.filter(item => !item.secret).map(item => item.id),
+          privateNpcIds: scenarioNpcs.filter(item => item.secret).map(item => item.id),
+          updatedAt: Date.now(),
+        };
+      });
+      if (changed) {
+        try {
+          localStorage.setItem(SCENARIO_RECORDS_STORAGE_KEY, JSON.stringify(updated));
+        } catch (error) {
+          throw new Error(`NPC登録には保存しましたが、シナリオ側を更新できませんでした: ${error.message}`);
+        }
+      }
+    }
+
+    function removeNpcFromScenarios(npcId) {
+      const previousRecords = localStorage.getItem(SCENARIO_RECORDS_STORAGE_KEY);
+      let stored;
+      try {
+        stored = JSON.parse(previousRecords || "[]");
+      } catch (error) {
+        throw new Error(`シナリオ内NPCを削除できませんでした: ${error.message}`);
+      }
+      if (!Array.isArray(stored)) throw new Error("保存されたシナリオ情報の形式が正しくありません");
+      let changed = false;
+      const updated = stored.map(scenario => {
+        if (!Array.isArray(scenario.npcs)) return scenario;
+        const scenarioNpcs = scenario.npcs.filter(npc => npc?.id !== npcId);
+        if (scenarioNpcs.length === scenario.npcs.length) return scenario;
+        changed = true;
+        return {
+          ...scenario,
+          npcs: scenarioNpcs,
+          npcIds: scenarioNpcs.filter(npc => !npc.secret).map(npc => npc.id),
+          privateNpcIds: scenarioNpcs.filter(npc => npc.secret).map(npc => npc.id),
+          updatedAt: Date.now(),
+        };
+      });
+      if (!changed) return null;
+      try {
+        localStorage.setItem(SCENARIO_RECORDS_STORAGE_KEY, JSON.stringify(updated));
+      } catch (error) {
+        throw new Error(`シナリオ内NPCを削除できませんでした: ${error.message}`);
+      }
+      return previousRecords;
+    }
+
+    function restoreScenarioRecords(previousRecords) {
+      if (previousRecords === null) return;
+      try {
+        localStorage.setItem(SCENARIO_RECORDS_STORAGE_KEY, previousRecords);
+      } catch (error) {
+        throw new Error(`シナリオ側の削除を取り消せませんでした: ${error.message}`);
+      }
+    }
+
+    function notifyNpcLibraryUpdated() {
+      localStorage.setItem(NPC_LIBRARY_UPDATED_KEY, String(Date.now()));
+    }
+
+    function writeNpc(npc) {
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction("npcs", "readwrite");
+        transaction.objectStore("npcs").put(npc);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(transaction.error);
+      });
+    }
+
+    function removeNpc(id) {
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction("npcs", "readwrite");
+        transaction.objectStore("npcs").delete(id);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error);
+      });
+    }
+
+    async function initialize() {
+      try {
+        database = await openDatabase();
+        let storedNpcs = await readAll();
+        if (!storedNpcs.length) {
+          let legacyNpcs = [];
+          try {
+            const saved = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "[]");
+            if (Array.isArray(saved)) legacyNpcs = saved.filter(item => item && typeof item === "object" && typeof item.id === "string");
+          } catch {}
+          for (const npc of legacyNpcs) await writeNpc(npc);
+          if (legacyNpcs.length) localStorage.removeItem(LEGACY_STORAGE_KEY);
+          if (legacyNpcs.length) storedNpcs = await readAll();
+        }
+        npcs = mergeScenarioNpcs(storedNpcs);
+        const storedById = new Map(storedNpcs.map(npc => [npc.id, npc]));
+        const missingOrNewer = npcs.filter(npc => {
+          const stored = storedById.get(npc.id);
+          return !stored || (npc.updatedAt || 0) > (stored.updatedAt || 0);
+        });
+        for (const npc of missingOrNewer) await writeNpc(npc);
+        if (missingOrNewer.length) {
+          npcs = await readAll();
+          notifyNpcLibraryUpdated();
+        }
+        const previousScenarios = scenarios;
+        scenarios = [...new Set([...scenarios, ...npcs.map(npc => npc.fields?.scenario).filter(Boolean)])];
+        if (scenarios.length !== previousScenarios.length) saveScenarios();
+        creators = [...new Set([...creators, ...npcs.map(npc => npc.fields?.creator).filter(Boolean)])];
+        renderScenarioOptions();
+        renderCreatorOptions();
+        renderList();
+      } catch (error) {
+        saveState.textContent = `NPCデータを読み込めませんでした: ${error.message}`;
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>\"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[character]));
+    }
+
+    function renderFormFields() {
+      fieldsElement.innerHTML = NPC_FIELDS.map(field => `
+        <div class="field">
+          <label for="field-${field.key}">${escapeHtml(field.label)}${field.required ? ' <span class="required">*</span>' : ""}</label>
+          ${field.type === "scenario"
+            ? `<div class="scenario-entry"><select id="field-${field.key}" data-field="${field.key}"><option value="">シナリオを選択</option></select><button class="button" type="button" id="addScenarioButton" aria-label="シナリオ候補を追加" title="シナリオ候補を追加">＋</button></div><div class="scenario-add" id="scenarioAddPanel" hidden><input id="newScenario" type="text" aria-label="追加するシナリオ名" placeholder="新しいシナリオ名"><button class="button primary" type="button" id="saveScenarioButton">追加</button><button class="button" type="button" id="cancelScenarioButton">取消</button></div>`
+            : field.type === "creator"
+            ? `<div class="scenario-entry"><select id="field-${field.key}" data-field="${field.key}"><option value="">制作者・作成者を選択</option></select><button class="button" type="button" id="addCreatorButton" aria-label="制作者・作成者候補を追加" title="制作者・作成者候補を追加">＋</button></div><div class="scenario-add" id="creatorAddPanel" hidden><input id="newCreator" type="text" aria-label="追加する制作者・作成者" placeholder="制作者・作成者名"><button class="button primary" type="button" id="saveCreatorButton">追加</button><button class="button" type="button" id="cancelCreatorButton">取消</button></div>`
+            : field.type === "textarea"
+            ? `<textarea id="field-${field.key}" data-field="${field.key}" placeholder="${escapeHtml(field.placeholder || "")}"${field.required ? " required" : ""}></textarea>`
+            : `<input id="field-${field.key}" data-field="${field.key}" type="${field.type}" placeholder="${escapeHtml(field.placeholder || "")}"${field.required ? " required" : ""} autocomplete="off">`}
+        </div>`).join("");
+      renderScenarioOptions();
+      renderCreatorOptions();
+    }
+
+    function renderScenarioOptions(selected = document.getElementById("field-scenario")?.value || "") {
+      const select = document.getElementById("field-scenario");
+      if (!select) return;
+      const options = [...new Set([...scenarios, selected].filter(Boolean))].sort((left, right) => left.localeCompare(right, "ja"));
+      select.innerHTML = `<option value="">シナリオを選択</option>${options.map(scenario => `<option value="${escapeHtml(scenario)}">${escapeHtml(scenario)}</option>`).join("")}`;
+      select.value = selected;
+    }
+
+    function saveScenarios() {
+      try {
+        localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify(scenarios));
+        return true;
+      } catch {
+        saveState.textContent = "シナリオ候補を保存できませんでした";
+        return false;
+      }
+    }
+
+    async function isScenarioUsedByCharacters(scenario) {
+      if (typeof indexedDB.databases !== "function") return true;
+      try {
+        const databases = await indexedDB.databases();
+        if (!databases.some(item => item.name === "trpg-character-library")) return false;
+        const characterDatabase = await new Promise((resolve, reject) => {
+          const request = indexedDB.open("trpg-character-library");
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        if (!characterDatabase.objectStoreNames.contains("characters")) {
+          characterDatabase.close();
+          return false;
+        }
+        const characters = await new Promise((resolve, reject) => {
+          const request = characterDatabase.transaction("characters", "readonly").objectStore("characters").getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        characterDatabase.close();
+        return characters.some(character => Array.isArray(character.fields?.passedScenarios) && character.fields.passedScenarios.includes(scenario));
+      } catch {
+        return true;
+      }
+    }
+
+    async function removeScenarioIfUnused(scenario) {
+      if (!scenario || npcs.some(npc => npc.fields?.scenario === scenario)) return;
+      if (await isScenarioUsedByCharacters(scenario)) return;
+      const remaining = scenarios.filter(value => value !== scenario);
+      if (remaining.length === scenarios.length) return;
+      scenarios = remaining;
+      saveScenarios();
+      const selected = document.getElementById("field-scenario").value;
+      renderScenarioOptions(selected === scenario ? "" : selected);
+    }
+
+    function renderCreatorOptions(selected = document.getElementById("field-creator")?.value || "") {
+      const select = document.getElementById("field-creator");
+      if (!select) return;
+      const options = [...new Set([...creators, selected].filter(Boolean))].sort((left, right) => left.localeCompare(right, "ja"));
+      select.innerHTML = `<option value="">制作者・作成者を選択</option>${options.map(creator => `<option value="${escapeHtml(creator)}">${escapeHtml(creator)}</option>`).join("")}`;
+      select.value = selected;
+    }
+
+    function saveCreators() {
+      try {
+        localStorage.setItem(CREATOR_STORAGE_KEY, JSON.stringify(creators));
+        return true;
+      } catch {
+        saveState.textContent = "制作者・作成者の候補を保存できませんでした";
+        return false;
+      }
+    }
+
+    function imageToDataUrl(file) {
+      return createImageBitmap(file).then(bitmap => {
+        const scale = Math.min(1, 1200 / bitmap.width, 1600 / bitmap.height);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        return new Promise((resolve, reject) => {
+          canvas.toBlob(blob => {
+            if (!blob) return reject(new Error("画像を変換できませんでした"));
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(blob);
+          }, "image/webp", 0.86);
+        });
+      });
+    }
+
+    function renderImagePreview() {
+      const preview = document.getElementById("imagePreview");
+      const patterns = ["solid", "lines", "dots", "grid", "diagonal-grid", "circles", "big-circle", "big-circle-inverted", "custom"];
+      const pattern = patterns.includes(currentBackground.pattern) ? currentBackground.pattern : "solid";
+      preview.className = `npc-image pattern-${pattern} ${currentImage ? "has-image" : ""}`;
+      preview.style.setProperty("--npc-color", currentColor);
+      document.getElementById("themeColor").value = currentColor;
+      document.getElementById("themeColorPicker").value = currentColor;
+      form.style.setProperty("--npc-color", currentColor);
+      preview.style.setProperty("--pattern-ink", currentBackground.patternColor === "black" ? "#111111" : "#ffffff");
+      preview.style.backgroundImage = "";
+      preview.style.backgroundSize = "";
+      preview.style.backgroundRepeat = "";
+      if (currentImage) preview.innerHTML = `<img src="${escapeHtml(currentImage)}" alt="NPC画像プレビュー">`;
+      else preview.textContent = "画像未設定";
+      if (currentImage && pattern === "custom" && currentBackground.customBackground) {
+        preview.style.backgroundImage = `url("${currentBackground.customBackground}")`;
+        preview.style.backgroundSize = currentBackground.fit === "tile" ? "auto" : currentBackground.fit;
+        preview.style.backgroundRepeat = currentBackground.fit === "tile" ? "repeat" : "no-repeat";
+      }
+      document.getElementById("backgroundPattern").value = pattern;
+      document.getElementById("backgroundPatternColor").value = currentBackground.patternColor === "black" ? "black" : "white";
+      document.getElementById("backgroundFit").value = ["cover", "contain", "tile"].includes(currentBackground.fit) ? currentBackground.fit : "cover";
+      const custom = pattern === "custom";
+      document.getElementById("customBackgroundControls").hidden = !custom;
+      document.getElementById("backgroundFitControl").hidden = !custom;
+      document.getElementById("removeImageButton").hidden = !currentImage;
+      document.getElementById("removeBackgroundButton").hidden = !currentBackground.customBackground;
+    }
+
+    function renderList() {
+      const query = document.getElementById("search").value.trim().toLocaleLowerCase();
+      const publicView = document.body.dataset.audienceMode === "public";
+      const visibleNpcs = publicView ? npcs.filter(npc => !npc.secret) : npcs;
+      const filtered = [...visibleNpcs]
+        .filter(npc => NPC_FIELDS.some(field => String(npc.fields?.[field.key] || "").toLocaleLowerCase("ja").includes(query)))
+        .sort((left, right) => (right.updatedAt || 0) - (left.updatedAt || 0));
+      document.getElementById("count").textContent = `${visibleNpcs.length} 人`;
+      if (!filtered.length) {
+        const emptyMessage = publicView && npcs.some(npc => npc.secret)
+          ? "公開できるNPCはまだいません。"
+          : npcs.length ? "検索条件に合うNPCはいません。" : "まだNPCが登録されていません。左のフォームから追加できます。";
+        npcList.innerHTML = `<p class="empty">${emptyMessage}</p>`;
+        return;
+      }
+      npcList.innerHTML = filtered.map(npc => {
+        const values = npc.fields || {};
+        return `<article class="npc-entry" data-id="${escapeHtml(npc.id)}">
+          <div class="entry-top">
+            <div class="entry-identity"><div class="entry-image pattern-${escapeHtml(npc.background?.pattern || "solid")} ${npc.image ? "has-image" : ""}" style="--npc-color:${/^#[0-9a-fA-F]{6}$/.test(npc.themeColor || "") ? npc.themeColor : "#888888"}">${npc.image ? `<img src="${escapeHtml(npc.image)}" alt="${escapeHtml(values.name || "NPC")}の画像">` : "画像なし"}</div><div class="entry-title"><h3><span class="entry-color" style="background-color:${/^#[0-9a-fA-F]{6}$/.test(npc.themeColor || "") ? npc.themeColor : "#888888"}" aria-label="イメージカラー"></span>${escapeHtml(values.name || "名前未設定")}${npc.secret ? '<span class="entry-secret">秘匿</span>' : ""}</h3>${values.scenario ? `<p class="entry-scenario">${escapeHtml(values.scenario)}</p>` : ""}</div></div>
+            <div class="entry-actions"><button class="button" type="button" data-action="edit" data-id="${escapeHtml(npc.id)}">編集</button><button class="button danger" type="button" data-action="delete" data-id="${escapeHtml(npc.id)}">削除</button></div>
+          </div>
+          ${values.creator ? `<div class="entry-meta"><span>制作者: <a href="TRPG制作者管理.html?name=${encodeURIComponent(values.creator)}">${escapeHtml(values.creator)}</a></span></div>` : ""}
+          <p class="entry-memo">${escapeHtml(values.memo || "")}</p>
+        </article>`;
+      }).join("");
+      filtered.forEach(npc => {
+        const image = npcList.querySelector(`.npc-entry[data-id="${CSS.escape(npc.id)}"] .entry-image`);
+        if (!image) return;
+        const settings = npc.background || {};
+        image.style.setProperty("--pattern-ink", settings.patternColor === "black" ? "#111111" : "#ffffff");
+        if (settings.pattern === "custom" && settings.customBackground) {
+          image.style.backgroundImage = `url("${settings.customBackground}")`;
+          image.style.backgroundSize = settings.fit === "tile" ? "auto" : settings.fit || "cover";
+          image.style.backgroundRepeat = settings.fit === "tile" ? "repeat" : "no-repeat";
+        }
+      });
+    }
+
+    function resetForm() {
+      form.reset();
+      editingId = null;
+      document.getElementById("secretCharacter").checked = false;
+      currentImage = "";
+      currentColor = "#888888";
+      currentBackground = { pattern: "solid", patternColor: "white", customBackground: "", fit: "cover" };
+      renderImagePreview();
+      renderScenarioOptions("");
+      renderCreatorOptions("");
+      document.getElementById("formTitle").textContent = "新しいNPC";
+      document.getElementById("submitButton").textContent = "NPCを登録";
+      document.getElementById("cancelButton").hidden = true;
+    }
+
+    renderFormFields();
+    renderList();
+    renderImagePreview();
+    initialize();
+    window.addEventListener("audience-mode-change", renderList);
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const values = Object.fromEntries(NPC_FIELDS.map(field => [field.key, fieldsElement.querySelector(`[data-field="${field.key}"]`).value.trim()]));
+      if (!values.name) return;
+      const now = Date.now();
+      const existing = npcs.find(npc => npc.id === editingId);
+      const previousScenario = existing?.fields?.scenario || "";
+      const secret = document.getElementById("secretCharacter").checked;
+      const npc = existing
+        ? { ...existing, fields: values, image: currentImage, background: { ...currentBackground }, themeColor: currentColor, secret, updatedAt: now }
+        : { id: crypto.randomUUID(), fields: values, image: currentImage, background: { ...currentBackground }, themeColor: currentColor, secret, createdAt: now, updatedAt: now };
+      try {
+        await writeNpc(npc);
+        npcs = [npc, ...npcs.filter(item => item.id !== npc.id)];
+        let syncError = "";
+        try {
+          syncNpcToScenarios(npc);
+          notifyNpcLibraryUpdated();
+        } catch (error) {
+          syncError = error.message;
+        }
+        if (previousScenario && previousScenario !== values.scenario) await removeScenarioIfUnused(previousScenario);
+        if (values.scenario && !scenarios.includes(values.scenario)) {
+          scenarios.push(values.scenario);
+          saveScenarios();
+        }
+        if (values.creator && !creators.includes(values.creator)) {
+          creators.push(values.creator);
+          saveCreators();
+        }
+        saveState.textContent = syncError ? `${syncError} NPC登録側の保存は完了しました。` : "保存しました";
+        resetForm();
+        renderList();
+      } catch (error) {
+        saveState.textContent = `保存できませんでした: ${error.message}`;
+      }
+    });
+
+    document.getElementById("cancelButton").addEventListener("click", resetForm);
+    document.getElementById("search").addEventListener("input", renderList);
+    window.addEventListener("storage", event => {
+      if (!database) return;
+      if (event.key === SCENARIO_RECORDS_STORAGE_KEY || event.key === NPC_LIBRARY_UPDATED_KEY) {
+        (async () => {
+          try {
+            npcs = mergeScenarioNpcs(await readAll());
+            if (event.key === SCENARIO_RECORDS_STORAGE_KEY) {
+              const stored = JSON.parse(event.newValue || "[]");
+              scenarios = [...new Set([...scenarios, ...(Array.isArray(stored) ? stored.map(item => item?.title) : [])].filter(value => typeof value === "string" && value.trim()))];
+              renderScenarioOptions(document.getElementById("field-scenario")?.value || "");
+            }
+            renderList();
+          } catch (error) {
+            saveState.textContent = `シナリオとの同期に失敗しました: ${error.message}`;
+          }
+        })();
+        return;
+      }
+      if (event.key === CREATOR_STORAGE_KEY) {
+        (async () => {
+          try {
+            const saved = JSON.parse(event.newValue || "[]");
+            npcs = await readAll();
+            creators = [...new Set([...(Array.isArray(saved) ? saved : []), ...npcs.map(npc => npc.fields?.creator)].filter(value => typeof value === "string" && value.trim()))];
+            if (editingId) {
+              const selected = document.getElementById("field-creator").value;
+              if (!creators.includes(selected)) renderCreatorOptions(npcs.find(npc => npc.id === editingId)?.fields?.creator || "");
+              else renderCreatorOptions(selected);
+            } else {
+              renderCreatorOptions();
+            }
+            renderList();
+          } catch (error) {
+            saveState.textContent = `制作者名を同期できませんでした: ${error.message}`;
+          }
+        })();
+        return;
+      }
+      if (event.key !== SCENARIO_STORAGE_KEY) return;
+      try {
+        const saved = JSON.parse(event.newValue || "[]");
+        const selected = document.getElementById("field-scenario")?.value || "";
+        scenarios = [...new Set([...(Array.isArray(saved) ? saved : []), ...npcs.map(npc => npc.fields?.scenario)].filter(value => typeof value === "string" && value.trim()))];
+        renderScenarioOptions(selected);
+      } catch {
+        saveState.textContent = "シナリオ候補を読み込めませんでした";
+      }
+    });
+    document.getElementById("addScenarioButton").addEventListener("click", () => {
+      const panel = document.getElementById("scenarioAddPanel");
+      panel.hidden = false;
+      document.getElementById("newScenario").focus();
+    });
+    document.getElementById("cancelScenarioButton").addEventListener("click", () => {
+      document.getElementById("newScenario").value = "";
+      document.getElementById("scenarioAddPanel").hidden = true;
+    });
+    document.getElementById("saveScenarioButton").addEventListener("click", () => {
+      const input = document.getElementById("newScenario");
+      const scenario = input.value.trim();
+      if (!scenario) { input.focus(); return; }
+      if (!scenarios.includes(scenario)) scenarios.push(scenario);
+      if (saveScenarios()) {
+        renderScenarioOptions(scenario);
+        input.value = "";
+        document.getElementById("scenarioAddPanel").hidden = true;
+        saveState.textContent = "シナリオ候補を保存しました";
+      }
+    });
+
+    document.getElementById("newScenario").addEventListener("keydown", event => {
+      if (event.key === "Enter") { event.preventDefault(); document.getElementById("saveScenarioButton").click(); }
+    });
+    document.getElementById("addCreatorButton").addEventListener("click", () => {
+      const panel = document.getElementById("creatorAddPanel");
+      panel.hidden = false;
+      document.getElementById("newCreator").focus();
+    });
+    document.getElementById("cancelCreatorButton").addEventListener("click", () => {
+      document.getElementById("newCreator").value = "";
+      document.getElementById("creatorAddPanel").hidden = true;
+    });
+    document.getElementById("saveCreatorButton").addEventListener("click", () => {
+      const input = document.getElementById("newCreator");
+      const creator = input.value.trim();
+      if (!creator) { input.focus(); return; }
+      if (!creators.includes(creator)) creators.push(creator);
+      if (saveCreators()) {
+        renderCreatorOptions(creator);
+        input.value = "";
+        document.getElementById("creatorAddPanel").hidden = true;
+        saveState.textContent = "制作者・作成者の候補を保存しました";
+      }
+    });
+    document.getElementById("newCreator").addEventListener("keydown", event => {
+      if (event.key === "Enter") { event.preventDefault(); document.getElementById("saveCreatorButton").click(); }
+    });
+    document.getElementById("imageFile").addEventListener("change", async event => {
+      const [file] = event.target.files || [];
+      event.target.value = "";
+      if (!file) return;
+      if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) {
+        saveState.textContent = "20MB以下の画像ファイルを選択してください";
+        return;
+      }
+      try {
+        currentImage = await imageToDataUrl(file);
+        renderImagePreview();
+        saveState.textContent = "画像を設定しました。NPC登録で保存されます";
+      } catch (error) {
+        saveState.textContent = `画像を読み込めませんでした: ${error.message}`;
+      }
+    });
+    document.getElementById("removeImageButton").addEventListener("click", () => {
+      currentImage = "";
+      renderImagePreview();
+    });
+    document.getElementById("themeColorPicker").addEventListener("input", event => {
+      currentColor = event.target.value;
+      renderImagePreview();
+    });
+    document.getElementById("themeColor").addEventListener("input", event => {
+      const color = event.target.value.trim();
+      if (!/^#[0-9a-fA-F]{6}$/.test(color)) return;
+      currentColor = color;
+      renderImagePreview();
+    });
+    document.getElementById("backgroundPattern").addEventListener("change", event => {
+      currentBackground.pattern = event.target.value;
+      renderImagePreview();
+    });
+    document.getElementById("backgroundPatternColor").addEventListener("change", event => {
+      currentBackground.patternColor = event.target.value;
+      renderImagePreview();
+    });
+    document.getElementById("backgroundFit").addEventListener("change", event => {
+      currentBackground.fit = event.target.value;
+      renderImagePreview();
+    });
+    document.getElementById("backgroundFile").addEventListener("change", async event => {
+      const [file] = event.target.files || [];
+      event.target.value = "";
+      if (!file) return;
+      if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) {
+        saveState.textContent = "20MB以下の画像ファイルを選択してください";
+        return;
+      }
+      try {
+        currentBackground.customBackground = await imageToDataUrl(file);
+        currentBackground.pattern = "custom";
+        renderImagePreview();
+        saveState.textContent = "背景画像を設定しました。NPC登録で保存されます";
+      } catch (error) {
+        saveState.textContent = `背景画像を読み込めませんでした: ${error.message}`;
+      }
+    });
+    document.getElementById("removeBackgroundButton").addEventListener("click", () => {
+      currentBackground.customBackground = "";
+      if (currentBackground.pattern === "custom") currentBackground.pattern = "solid";
+      renderImagePreview();
+    });
+
+    npcList.addEventListener("click", async event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const npc = npcs.find(item => item.id === button.dataset.id);
+      if (!npc) return;
+      if (button.dataset.action === "edit") {
+        editingId = npc.id;
+        document.getElementById("secretCharacter").checked = Boolean(npc.secret);
+        NPC_FIELDS.forEach(field => {
+          const input = fieldsElement.querySelector(`[data-field="${field.key}"]`);
+          if (field.type === "scenario") renderScenarioOptions(npc.fields?.[field.key] || "");
+          else if (field.type === "creator") renderCreatorOptions(npc.fields?.[field.key] || "");
+          else input.value = npc.fields?.[field.key] || "";
+        });
+        currentImage = npc.image || "";
+        currentColor = /^#[0-9a-fA-F]{6}$/.test(npc.themeColor || "") ? npc.themeColor : "#888888";
+        currentBackground = { pattern: "solid", patternColor: "white", customBackground: "", fit: "cover", ...(npc.background || {}) };
+        renderImagePreview();
+        document.getElementById("formTitle").textContent = "NPCを編集";
+        document.getElementById("submitButton").textContent = "変更を保存";
+        document.getElementById("cancelButton").hidden = false;
+        fieldsElement.querySelector("[data-field='name']").focus();
+      } else if (button.dataset.action === "delete" && confirm(`「${npc.fields?.name || "名前未設定"}」を削除しますか？\nシナリオ内に登録されている同じNPCも削除されます。`)) {
+        try {
+          const previousScenarioRecords = removeNpcFromScenarios(npc.id);
+          try {
+            await removeNpc(npc.id);
+          } catch (error) {
+            try {
+              restoreScenarioRecords(previousScenarioRecords);
+            } catch (rollbackError) {
+              throw new Error(`NPC登録から削除できませんでした: ${error.message}。${rollbackError.message}`);
+            }
+            throw error;
+          }
+          npcs = npcs.filter(item => item.id !== npc.id);
+          let notificationError = "";
+          try {
+            notifyNpcLibraryUpdated();
+          } catch (error) {
+            notificationError = ` 他ページへの同期通知に失敗しました: ${error.message}`;
+          }
+          if (editingId === npc.id) resetForm();
+          try {
+            await removeScenarioIfUnused(npc.fields?.scenario);
+          } catch (error) {
+            saveState.textContent = `NPCは削除しましたが、シナリオ候補の整理に失敗しました: ${error.message}${notificationError}`;
+            renderList();
+            return;
+          }
+          saveState.textContent = `削除しました${notificationError}`;
+          renderList();
+        } catch (error) {
+          saveState.textContent = `削除できませんでした: ${error.message}`;
+        }
+      }
+    });
+  </script>
+  <script src="view-mode.js"></script>
+</body>
+</html>

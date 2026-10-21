@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2efe7">
+  <title>シナリオ管理 | TRPG</title>
+  <link rel="stylesheet" href="view-mode.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f2efe7;
+      --surface: #fffefa;
+      --ink: #242a26;
+      --muted: #72796f;
+      --line: #deded3;
+      --green: #28634e;
+      --green-dark: #1c493a;
+      --coral: #c15d46;
+      --serif: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", Georgia, serif;
+      --sans: "Yu Gothic UI", "Meiryo", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); }
+    button, input, textarea { font: inherit; }
+    button, a { cursor: pointer; }
+    .topbar { position: sticky; top: 0; z-index: 30; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 max(24px, calc((100vw - 1120px) / 2)); border-bottom: 1px solid #d9d8ce; background: rgba(255,254,250,.96); }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: inherit; font: 18px var(--serif); text-decoration: none; }
+    .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--green); font: 17px Georgia, serif; }
+    .home-link { color: var(--green-dark); font-size: 12px; text-decoration: none; }
+    .home-link:hover { text-decoration: underline; }
+    main { width: min(100% - 40px, 1120px); margin: 44px auto 72px; }
+    .intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 24px; border-bottom: 1px solid #d6d7cc; }
+    .eyebrow { margin: 0 0 9px; color: var(--coral); font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+    h1 { margin: 0; font: 34px/1.35 var(--serif); }
+    .intro-copy { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .count { flex: 0 0 auto; color: var(--muted); font-size: 12px; }
+    .layout { display: grid; grid-template-columns: minmax(190px, 240px) minmax(300px, .95fr) minmax(260px, .8fr); align-items: start; gap: 20px; padding-top: 26px; }
+    .panel { min-width: 0; padding: 18px; border: 1px solid #d6d9d1; border-radius: 3px; background: var(--surface); box-shadow: 0 5px 16px rgba(30,35,31,.06); }
+    .panel h2 { margin: 0; font: 20px var(--serif); }
+    .list-panel { position: sticky; top: 16px; }
+    .search, .field input, .field textarea, .npc-select { width: 100%; min-width: 0; border: 1px solid #d8d9cf; border-radius: 3px; outline: none; background: var(--surface); color: var(--ink); font-size: 13px; }
+    .search { height: 38px; padding: 0 10px; margin: 14px 0 10px; }
+    .field input { height: 39px; padding: 0 10px; }
+    .field textarea { min-height: 100px; padding: 9px 10px; line-height: 1.7; resize: vertical; }
+    .field input, .field textarea { display: block; }
+    .parent-kp-list { display: grid; gap: 6px; margin-top: 8px; }
+    .parent-kp-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 8px; border: 1px solid #e4e5dc; border-radius: 3px; font-size: 12px; }
+    .parent-kp-role { flex: 0 0 auto; color: var(--green-dark); font-weight: 700; }
+    .npc-select { height: 39px; padding: 0 9px; }
+    .search:focus, .field input:focus, .field textarea:focus, .npc-select:focus { border-color: #70917d; box-shadow: 0 0 0 3px rgba(40,99,78,.1); }
+    .scenario-list { display: grid; gap: 5px; max-height: 62vh; overflow-y: auto; }
+    .scenario-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px; padding: 4px; border: 1px solid transparent; border-radius: 3px; }
+    .scenario-row[aria-current="true"] { border-color: #d1d9cf; background: #f5f7f1; }
+    .scenario-select { min-width: 0; padding: 6px; border: 0; border-radius: 3px; color: var(--ink); background: transparent; text-align: left; cursor: pointer; }
+    .scenario-select:hover { background: #f6f5ee; }
+    .scenario-select strong { display: block; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .scenario-select span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .scenario-delete { min-height: 32px; padding: 0 9px; }
+    .empty { margin: 12px 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .form-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+    .fields { display: grid; gap: 14px; }
+    .field { display: grid; gap: 6px; }
+    .field label, .npc-heading { color: #555e56; font-size: 11px; font-weight: 600; }
+    .required { color: var(--coral); }
+    .npc-fieldset { min-width: 0; margin: 18px 0 0; padding: 12px; border: 1px solid var(--line); border-radius: 3px; }
+    .npc-fieldset legend { padding: 0 5px; color: #555e56; font-size: 11px; font-weight: 600; }
+    .npc-picker { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
+    .npc-picker .button { min-height: 39px; }
+    .selected-npcs { display: grid; gap: 6px; margin-top: 10px; }
+    .selected-npc { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 8px; border: 1px solid #e4e5dc; border-radius: 3px; font-size: 12px; }
+    .selected-npc-name { min-width: 0; overflow-wrap: anywhere; }
+    .selected-npc-remove { flex: 0 0 auto; min-height: 28px; padding: 0 8px; }
+    .scenario-npc-card { display: grid; gap: 9px; padding: 11px; border: 1px solid #e4e5dc; border-radius: 3px; background: var(--surface); }
+    .scenario-npc-card.is-secret { border-color: #d6b6a9; background: #fffaf7; }
+    body[data-audience-mode="public"] .scenario-npc-card.is-secret { display: none; }
+    .scenario-npc-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .scenario-npc-card-head strong { font-size: 12px; }
+    .scenario-npc-fields { display: grid; gap: 8px; }
+    .scenario-npc-fields label { display: grid; gap: 4px; color: #555e56; font-size: 10px; }
+    .scenario-npc-fields input, .scenario-npc-fields textarea { width: 100%; min-width: 0; padding: 7px 8px; border: 1px solid #d8d9cf; border-radius: 3px; background: #fffefa; color: var(--ink); font-size: 12px; }
+    .scenario-npc-fields textarea { min-height: 58px; resize: vertical; }
+    .scenario-npc-secret-toggle { display: flex !important; align-items: center; gap: 6px !important; color: #9c4937 !important; }
+    .selected-private-npcs { display: grid; gap: 6px; margin-top: 10px; }
+    .selected-private-npc { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 8px; border: 1px solid #e4e0d7; border-radius: 3px; background: var(--surface); font-size: 12px; }
+    .private-npc-preview { margin-top: 18px; padding-top: 8px; border-top: 1px dashed #d6b6a9; }
+    .private-npc-preview h4 { margin: 0 0 8px; color: #9c4937; font: 15px var(--serif); }
+    .private-npc-list { display: grid; gap: 6px; }
+    .secret-fieldset, .secret-npc-fieldset { min-width: 0; margin: 18px 0 0; padding: 12px; border: 1px solid #d6b6a9; border-radius: 3px; background: #fffaf7; }
+    .secret-fieldset legend { padding: 0 5px; color: #9c4937; font-size: 12px; font-weight: 700; }
+    .secret-npc-fieldset legend { padding: 0 5px; color: #9c4937; font-size: 12px; font-weight: 700; }
+    .secret-note { margin: 0 0 12px; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .conversation-logs { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #d6b6a9; }
+    .conversation-logs h3, .conversation-logs h4 { margin: 0 0 8px; color: #9c4937; font: 15px var(--serif); }
+    .conversation-log-list { display: grid; gap: 7px; }
+    .conversation-log-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px; border: 1px solid #ead7d0; border-radius: 3px; background: #fff; font-size: 12px; }
+    .conversation-log-name { min-width: 0; overflow-wrap: anywhere; }
+    .conversation-log-actions { display: flex; flex: 0 0 auto; gap: 6px; }
+    .conversation-log-actions .button { min-height: 30px; padding: 0 8px; }
+    .file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .handout-list { display: grid; gap: 12px; margin: 10px 0; }
+    .handout-card { display: grid; gap: 10px; padding: 12px; border: 1px solid #e4e0d7; border-radius: 3px; background: var(--surface); }
+    .handout-secret-content { margin: 0 -4px; padding: 10px; border: 1px solid #d6b6a9; border-radius: 3px; background: #fffaf7; }
+    .handout-secret-content label { color: #9c4937; }
+    .handout-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .handout-heading h4 { margin: 0; font: 15px var(--serif); }
+    .secret-preview { margin-top: 22px; padding-top: 4px; border-top: 1px dashed #d6b6a9; }
+    .secret-preview h3 { color: #9c4937; }
+    .secret-preview-section { margin: 12px 0; }
+    .secret-preview-section h4 { margin: 0 0 5px; font: 14px var(--serif); }
+    .secret-preview-section p { margin: 0; color: #505a51; font-size: 12px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .handout-preview { margin-top: 22px; padding-top: 4px; border-top: 1px solid var(--line); }
+    .handout-preview-list { display: grid; gap: 10px; }
+    .handout-preview-card { padding: 10px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
+    .handout-preview-card h4 { margin: 0 0 6px; font: 14px var(--serif); }
+    .handout-preview-card p { margin: 6px 0 0; color: #505a51; font-size: 12px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .form-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .button { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 7px; padding: 0 13px; border: 1px solid var(--line); border-radius: 3px; color: var(--ink); background: var(--surface); text-decoration: none; font-size: 12px; }
+    .button:hover { border-color: #9eaa9e; background: #f8f8f1; }
+    .button.primary { border-color: var(--green); color: white; background: var(--green); }
+    .button.primary:hover { background: var(--green-dark); }
+    .button.danger { color: #a54234; }
+    .preview { position: sticky; top: 16px; }
+    .preview-title { margin: 14px 0 10px; font: 25px/1.45 var(--serif); overflow-wrap: anywhere; }
+    .preview-overview { color: #505a51; font-size: 13px; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .preview-url { display: inline-block; margin-top: 12px; color: var(--green-dark); font-size: 12px; overflow-wrap: anywhere; }
+    .preview h3 { margin: 24px 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font: 17px var(--serif); }
+    .npc-card { display: grid; grid-template-columns: 54px minmax(0, 1fr); align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #ecece5; }
+    .npc-image { width: 54px; height: 64px; display: grid; place-items: center; overflow: hidden; border-radius: 3px; color: #fff; background: var(--npc-color, #888); font-size: 9px; text-align: center; }
+    .npc-image img { width: 100%; height: 100%; object-fit: contain; }
+    .npc-name { margin: 0; font-size: 13px; }
+    .npc-detail { margin: 3px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+    .status { min-height: 20px; margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .status[data-error="true"] { color: #a54234; }
+    [hidden] { display: none !important; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: minmax(180px, .7fr) minmax(280px, 1.3fr); }
+      .preview { position: static; grid-column: 2; }
+      .list-panel { grid-row: span 2; }
+    }
+    @media (max-width: 640px) {
+      .topbar { min-height: 64px; padding: 0 18px; }
+      .brand { font-size: 15px; }
+      main { width: min(100% - 30px, 1120px); margin-top: 32px; }
+      .intro { align-items: flex-start; flex-direction: column; gap: 8px; }
+      h1 { font-size: 29px; }
+      .layout { grid-template-columns: 1fr; gap: 13px; }
+      .list-panel, .preview { position: static; grid-column: auto; grid-row: auto; }
+      .scenario-list { max-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">✦</span><span>TRPG シナリオ管理</span></a>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="audience-switch" role="group" aria-label="表示モード">
+        <button type="button" data-audience-mode="public" aria-pressed="false">公開ビュー</button>
+        <button type="button" data-audience-mode="private" aria-pressed="true">非公開ビュー</button>
+      </div>
+      <a class="home-link" href="index.html">← 管理室へ戻る</a>
+    </div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">SCENARIO ARCHIVE</p>
+        <h1 id="pageTitle">シナリオ</h1>
+        <p class="intro-copy">キャラクター書庫やNPC登録で選んだシナリオも一覧に表示されます。概要やURL、登場するNPCをまとめて管理できます。</p>
+      </div>
+      <p class="count" id="count" aria-live="polite">0 件</p>
+    </section>
+    <div class="layout">
+      <section class="panel list-panel" aria-labelledby="listTitle">
+        <h2 id="listTitle">シナリオ一覧</h2>
+        <input class="search" id="search" type="search" placeholder="タイトルで検索" aria-label="シナリオを検索">
+        <div class="scenario-list" id="scenarioList" aria-live="polite"></div>
+      </section>
+      <form class="panel" id="scenarioForm">
+        <div class="form-heading">
+          <h2 id="formTitle">新しいシナリオ</h2>
+          <button class="button" id="newButton" type="button">＋ 新規作成</button>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label for="title">タイトル <span class="required">*</span></label>
+            <input id="title" name="title" type="text" required maxlength="160" autocomplete="off" placeholder="シナリオのタイトル">
+          </div>
+          <div class="field">
+            <label for="overview">公開概要</label>
+            <textarea id="overview" name="overview" maxlength="5000" placeholder="あらすじやメモ"></textarea>
+          </div>
+          <div class="field">
+            <label for="url">URL</label>
+            <input id="url" name="url" type="url" maxlength="2048" autocomplete="url" placeholder="https://">
+          </div>
+          <div class="field">
+            <label for="parentKpSelect">親KP様</label>
+            <div class="npc-picker">
+              <select class="npc-select" id="parentKpSelect" aria-label="親KP様を選択">
+                <option value="">制作者・作成者を選択</option>
+              </select>
+              <button class="button" id="addParentKpButton" type="button">追加</button>
+            </div>
+            <p class="secret-note" id="parentKpHelp">1人目をKP、2人目以降をSKPとして表示します。<a href="TRPG制作者管理.html">制作者・作成者のプロフィール</a>から登録できます。</p>
+            <div class="parent-kp-list" id="parentKpList" aria-live="polite"></div>
+          </div>
+        </div>
+        <fieldset class="secret-fieldset" id="secretFieldset">
+          <legend>秘匿内容</legend>
+          <p class="secret-note">非公開ビューでのみ表示されます。概要・あらすじ・結末・複数のHTML会話ログを記録できます。</p>
+          <div class="fields">
+            <div class="field">
+              <label for="privateOverview">概要</label>
+              <textarea id="privateOverview" maxlength="5000" placeholder="非公開の概要"></textarea>
+            </div>
+            <div class="field">
+              <label for="synopsis">あらすじ</label>
+              <textarea id="synopsis" maxlength="10000" placeholder="シナリオのあらすじ"></textarea>
+            </div>
+            <div class="field">
+              <label for="ending">結末</label>
+              <textarea id="ending" maxlength="10000" placeholder="結末や真相"></textarea>
+            </div>
+          </div>
+          <section class="conversation-logs" id="conversationLogsEditor">
+            <h3>会話ログ</h3>
+            <p class="secret-note">HTMLファイルを複数追加できます。ログは非公開で保存され、内容を実行せずにダウンロードできます。ブラウザーの保存容量を超える大きなファイルは保存できない場合があります。</p>
+            <label class="button" for="conversationLogFiles">＋ HTML会話ログを追加</label>
+            <input id="conversationLogFiles" class="file-input-hidden" type="file" accept=".html,.htm,text/html" multiple>
+            <div class="conversation-log-list" id="conversationLogList" aria-live="polite"></div>
+          </section>
+        </fieldset>
+        <fieldset class="npc-fieldset" id="characterDiagnosisFieldset">
+          <legend>キャラクター診断</legend>
+          <div class="field">
+            <label for="characterDiagnosisUrl">URL</label>
+            <input id="characterDiagnosisUrl" type="url" maxlength="2048" autocomplete="url" placeholder="https://">
+          </div>
+        </fieldset>
+        <fieldset class="npc-fieldset" id="handoutFieldset">
+          <legend>ハンドアウト</legend>
+          <p class="secret-note">名称・該当キャラクター・概要は公開情報です。内容は非公開ビューでのみ表示されます。該当キャラクターを指定すると、キャラクター書庫や他キャラ図書館から選択・閲覧できます。</p>
+          <div class="handout-list" id="handoutList"></div>
+          <button class="button" id="addHandoutButton" type="button">＋ ハンドアウトを追加</button>
+        </fieldset>
+        <fieldset class="npc-fieldset">
+          <legend>登場NPC（シナリオ内で管理）</legend>
+          <p class="secret-note">ここで新規作成したNPCはNPC登録にも追加され、既存NPCを取り込んだ場合は同じデータとして同期されます。名前・制作者・メモ・秘匿設定の変更は両方のページに反映されます。</p>
+          <div class="npc-picker" id="npcPicker">
+            <select class="npc-select" id="npcSelect" aria-label="追加するNPC">
+              <option value="">既存NPCを選択（任意）</option>
+            </select>
+            <button class="button" id="addNpcButton" type="button">既存NPCを追加</button>
+          </div>
+          <div class="selected-npcs" id="scenarioNpcList" aria-live="polite"></div>
+          <button class="button" id="addScenarioNpcButton" type="button" style="margin-top:10px">＋ NPCを新規作成</button>
+          <p class="secret-note" id="unassignedNpcNote" hidden></p>
+        </fieldset>
+        <div class="form-actions">
+          <button class="button primary" type="submit" id="saveButton">シナリオを保存</button>
+        </div>
+        <p class="status" id="status" role="status" aria-live="polite">このブラウザーに保存されます</p>
+      </form>
+      <section class="panel preview" aria-labelledby="previewHeading">
+        <h2 id="previewHeading">シナリオ表示</h2>
+        <h3 class="preview-title" id="previewTitle">シナリオを選択してください</h3>
+        <p class="preview-overview" id="previewOverview"></p>
+        <a class="preview-url" id="previewUrl" target="_blank" rel="noopener noreferrer" hidden></a>
+        <a class="preview-url" id="previewCharacterDiagnosisUrl" target="_blank" rel="noopener noreferrer" hidden>キャラクター診断を開く</a>
+        <div class="parent-kp-list" id="previewParentKps" aria-label="親KP様"></div>
+        <section class="secret-preview" id="secretPreview" aria-label="秘匿内容" hidden>
+          <h3>秘匿内容</h3>
+          <div id="previewPrivateContent"></div>
+          <section class="conversation-logs" id="conversationLogsPreview" hidden>
+            <h4>会話ログ</h4>
+            <div class="conversation-log-list" id="previewConversationLogs"></div>
+          </section>
+        </section>
+        <section class="handout-preview" id="handoutPreview" aria-label="ハンドアウト" hidden>
+          <h3>ハンドアウト</h3>
+          <div class="handout-preview-list" id="previewHandouts"></div>
+        </section>
+        <h3>登場NPC</h3>
+        <div id="previewNpcs"><p class="empty">NPCを選択すると、ここに表示されます。</p></div>
+        <section class="private-npc-preview" id="privateNpcPreview" hidden>
+          <h4>秘匿NPC</h4>
+          <div class="private-npc-list" id="previewPrivateNpcs"></div>
+        </section>
+      </section>
+    </div>
+  </main>
+  <script>
+    "use strict";
+
+    const SCENARIO_STORAGE_KEY = "trpg-scenarios";
+    const SCENARIO_OPTIONS_KEY = "trpg-npc-scenarios";
+    const DELETED_SCENARIOS_KEY = "trpg-deleted-scenarios";
+    const CREATOR_PROFILES_KEY = "trpg-creator-profiles";
+    const NPC_DATABASE_NAME = "trpg-npc-library";
+    const CHARACTER_DATABASE_NAME = "trpg-character-library";
+    const OTHER_CHARACTER_STORAGE_KEY = "trpg-pc-character-register";
+    const NPC_LIBRARY_UPDATED_KEY = "trpg-npc-library-updated";
+    const scenarioList = document.getElementById("scenarioList");
+    const scenarioForm = document.getElementById("scenarioForm");
+    const statusElement = document.getElementById("status");
+    let scenarios = [];
+    let npcs = [];
+    let characters = [];
+    let otherCharacters = [];
+    let creatorProfiles = [];
+    let selectedParentKps = [];
+    let deletedScenarioTitles = new Set();
+    let selectedId = null;
+    let loading = false;
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>\"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[character]));
+    }
+
+    function setStatus(message, error = false) {
+      statusElement.textContent = message;
+      statusElement.dataset.error = String(error);
+    }
+
+    function readScenarioRecords() {
+      let saved;
+      try {
+        saved = JSON.parse(localStorage.getItem(SCENARIO_STORAGE_KEY) || "[]");
+      } catch (error) {
+        throw new Error(`シナリオ情報を読み込めませんでした: ${error.message}`);
+      }
+      if (!Array.isArray(saved)) throw new Error("保存されたシナリオ情報の形式が正しくありません");
+      return saved.filter(item => item && typeof item === "object" && typeof item.title === "string" && item.title.trim());
+    }
+
+    function readScenarioOptions() {
+      let saved;
+      try {
+        saved = JSON.parse(localStorage.getItem(SCENARIO_OPTIONS_KEY) || "[]");
+      } catch (error) {
+        throw new Error(`シナリオ候補を読み込めませんでした: ${error.message}`);
+      }
+      if (!Array.isArray(saved)) throw new Error("保存されたシナリオ候補の形式が正しくありません");
+      return saved.filter(value => typeof value === "string" && value.trim());
+    }
+
+    function readDeletedScenarioTitles() {
+      let saved;
+      try {
+        saved = JSON.parse(localStorage.getItem(DELETED_SCENARIOS_KEY) || "[]");
+      } catch (error) {
+        throw new Error(`削除済みシナリオ情報を読み込めませんでした: ${error.message}`);
+      }
+      if (!Array.isArray(saved)) throw new Error("保存された削除済みシナリオ情報の形式が正しくありません");
+      return new Set(saved.filter(value => typeof value === "string" && value.trim()));
+    }
+
+    function readCreatorProfiles() {
+      let saved;
+      try {
+        saved = JSON.parse(localStorage.getItem(CREATOR_PROFILES_KEY) || "[]");
+      } catch (error) {
+        throw new Error(`制作者・作成者のプロフィールを読み込めませんでした: ${error.message}`);
+      }
+      if (!Array.isArray(saved)) throw new Error("保存された制作者・作成者のプロフィール形式が正しくありません");
+      return saved.filter(profile => profile && typeof profile.id === "string" && typeof profile.name === "string" && profile.name.trim());
+    }
+
+    function readOtherCharacters() {
+      let saved;
+      try {
+        saved = JSON.parse(localStorage.getItem(OTHER_CHARACTER_STORAGE_KEY) || "[]");
+      } catch (error) {
+        throw new Error(`他キャラ図書館を読み込めませんでした: ${error.message}`);
+      }
+      if (!Array.isArray(saved)) throw new Error("保存された他キャラ図書館データの形式が正しくありません");
+      return saved.filter(character => character && typeof character.id === "string");
+    }
+
+    async function readExistingStore(databaseName, storeName) {
+      if (typeof indexedDB.databases !== "function") return [];
+      const databases = await indexedDB.databases();
+      if (!databases.some(item => item.name === databaseName)) return [];
+      const database = await new Promise((resolve, reject) => {
+        const request = indexedDB.open(databaseName);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error("データベースが別の画面で使用中です"));
+      });
+      try {
+        if (!database.objectStoreNames.contains(storeName)) return [];
+        return await new Promise((resolve, reject) => {
+          const request = database.transaction(storeName, "readonly").objectStore(storeName).getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      } finally {
+        database.close();
+      }
+    }
+
+    function mergeTitles(titles, previousScenarios = scenarios) {
+      const titleSet = new Set(scenarios.map(item => item.title));
+      titles.forEach(title => {
+        if (typeof title !== "string" || !title.trim()) return;
+        const normalizedTitle = title.trim();
+        if (deletedScenarioTitles.has(normalizedTitle)) return;
+        if (titleSet.has(normalizedTitle)) return;
+        titleSet.add(normalizedTitle);
+        const previous = previousScenarios.find(item => item.title === normalizedTitle);
+        scenarios.push(previous || {
+          id: crypto.randomUUID(),
+          title: normalizedTitle,
+          overview: "",
+          url: "",
+          npcIds: npcs.filter(npc => npc.fields?.scenario === normalizedTitle).map(npc => npc.id),
+        });
+      });
+    }
+
+    async function loadData() {
+      if (loading) return;
+      loading = true;
+      try {
+        const previousScenarios = scenarios;
+        deletedScenarioTitles = readDeletedScenarioTitles();
+        scenarios = readScenarioRecords().filter(item => !deletedScenarioTitles.has(item.title));
+        const [scenarioOptions, npcRecords, characterRecords] = await Promise.all([
+          Promise.resolve(readScenarioOptions()),
+          readExistingStore(NPC_DATABASE_NAME, "npcs"),
+          readExistingStore(CHARACTER_DATABASE_NAME, "characters"),
+        ]);
+        creatorProfiles = readCreatorProfiles();
+        npcs = npcRecords.filter(npc => npc && typeof npc.id === "string");
+        characters = characterRecords.filter(character => character && typeof character.id === "string");
+        otherCharacters = readOtherCharacters();
+        const characterScenarios = characters.flatMap(character => Array.isArray(character.fields?.passedScenarios) ? character.fields.passedScenarios : []);
+        const discoveredTitles = [...scenarioOptions, ...npcRecords.map(npc => npc.fields?.scenario), ...characterScenarios];
+        const knownTitles = new Set(scenarios.map(item => item.title));
+        const hasNewTitles = discoveredTitles.some(title => typeof title === "string" && title.trim() && !knownTitles.has(title));
+        mergeTitles(discoveredTitles, previousScenarios);
+        const migrated = migrateLegacyNpcsIntoScenarios();
+        const migrationSaveFailed = migrated && !persistScenarios(scenarios);
+        let npcLibrarySyncFailed = false;
+        if (migrationSaveFailed) {
+          setStatus("既存NPCをシナリオへ表示しましたが、移行内容を保存できませんでした。ブラウザーの保存容量を確認してください", true);
+        }
+        try {
+          await writeNpcLibraryRecords(scenarios.flatMap(scenario => scenario.npcs || []));
+          npcs = await readExistingStore(NPC_DATABASE_NAME, "npcs");
+          localStorage.setItem(NPC_LIBRARY_UPDATED_KEY, String(Date.now()));
+        } catch (error) {
+          npcLibrarySyncFailed = true;
+          setStatus(`シナリオは読み込みましたが、NPC登録との同期に失敗しました: ${error.message}`, true);
+        }
+        if (hasNewTitles && !migrationSaveFailed && !npcLibrarySyncFailed) {
+          setStatus("登録済みのシナリオを一覧に反映しました");
+        }
+        renderAll();
+      } catch (error) {
+        setStatus(error.message, true);
+      } finally {
+        loading = false;
+      }
+    }
+
+    function getSelectedScenario() {
+      return scenarios.find(item => item.id === selectedId) || null;
+    }
+
+    function associatedNpcs(scenario) {
+      if (!scenario) return [];
+      if (Array.isArray(scenario.npcs)) return scenario.npcs;
+      if (Array.isArray(scenario.npcIds)) {
+        const chosen = new Set(scenario.npcIds);
+        return npcs.filter(npc => chosen.has(npc.id));
+      }
+      return npcs.filter(npc => npc.fields?.scenario === scenario.title);
+    }
+
+    function migrateLegacyNpcsIntoScenarios() {
+      let changed = false;
+      scenarios.forEach(scenario => {
+        const records = Array.isArray(scenario.npcs) ? [...scenario.npcs] : [];
+        const privateIds = new Set(scenario.privateNpcIds || []);
+        const selectedIds = new Set([...(scenario.npcIds || []), ...privateIds]);
+        npcs.filter(npc => npc.fields?.scenario === scenario.title || selectedIds.has(npc.id)).forEach(npc => {
+          const copy = JSON.parse(JSON.stringify(npc));
+          const existingIndex = records.findIndex(record => record.id === npc.id);
+          if (existingIndex >= 0) {
+            if ((npc.updatedAt || 0) > (records[existingIndex].updatedAt || 0)) {
+              copy.fields = { ...(copy.fields || {}), scenario: scenario.title };
+              records[existingIndex] = copy;
+              changed = true;
+            }
+            return;
+          }
+          if (privateIds.has(npc.id)) copy.secret = true;
+          records.push(copy);
+          changed = true;
+        });
+        records.forEach(npc => {
+          if (!privateIds.has(npc.id) || npc.secret) return;
+          npc.secret = true;
+          changed = true;
+        });
+        if (records.length && !Array.isArray(scenario.npcs)) {
+          scenario.npcs = records;
+          changed = true;
+        } else if (records.length && records.length !== scenario.npcs.length) {
+          scenario.npcs = records;
+          changed = true;
+        }
+        if (Array.isArray(scenario.npcs)) {
+          const publicIds = scenario.npcs.filter(npc => !npc.secret).map(npc => npc.id);
+          const secretIds = scenario.npcs.filter(npc => npc.secret).map(npc => npc.id);
+          if (JSON.stringify(scenario.npcIds || []) !== JSON.stringify(publicIds)) {
+            scenario.npcIds = publicIds;
+            changed = true;
+          }
+          if (JSON.stringify(scenario.privateNpcIds || []) !== JSON.stringify(secretIds)) {
+            scenario.privateNpcIds = secretIds;
+            changed = true;
+          }
+        }
+      });
+      return changed;
+    }
+
+    function normalizeScenarioNpc(npc, scenarioTitle) {
+      const fields = npc?.fields && typeof npc.fields === "object" ? npc.fields : {};
+      const now = Date.now();
+      return {
+        ...(npc || {}),
+        id: typeof npc?.id === "string" && npc.id ? npc.id : crypto.randomUUID(),
+        fields: {
+          name: typeof fields.name === "string" ? fields.name : "",
+          scenario: scenarioTitle,
+          creator: typeof fields.creator === "string" ? fields.creator : "",
+          memo: typeof fields.memo === "string" ? fields.memo : "",
+        },
+        image: typeof npc?.image === "string" ? npc.image : "",
+        background: npc?.background && typeof npc.background === "object" ? npc.background : { pattern: "solid", patternColor: "white", customBackground: "", fit: "cover" },
+        themeColor: /^#[0-9a-fA-F]{6}$/.test(npc?.themeColor || "") ? npc.themeColor : "#888888",
+        secret: Boolean(npc?.secret),
+        createdAt: Number(npc?.createdAt) || now,
+        updatedAt: Number(npc?.updatedAt) || Number(npc?.createdAt) || now,
+      };
+    }
+
+    async function writeNpcLibraryRecords(records) {
+      if (!records.length) return;
+      const database = await new Promise((resolve, reject) => {
+        const request = indexedDB.open(NPC_DATABASE_NAME, 2);
+        request.onupgradeneeded = () => {
+          if (!request.result.objectStoreNames.contains("npcs")) request.result.createObjectStore("npcs", { keyPath: "id" });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error("NPC登録データベースが別の画面で使用中です"));
+      });
+      try {
+        if (!database.objectStoreNames.contains("npcs")) throw new Error("NPC登録データベースにnpcsストアがありません");
+        await new Promise((resolve, reject) => {
+          const transaction = database.transaction("npcs", "readwrite");
+          const store = transaction.objectStore("npcs");
+          records.forEach(record => store.put(record));
+          transaction.oncomplete = resolve;
+          transaction.onerror = () => reject(transaction.error);
+          transaction.onabort = () => reject(transaction.error || new Error("NPC登録への保存が中断されました"));
+        });
+      } finally {
+        database.close();
+      }
+    }
+
+    function renderScenarioNpcs(records = [], scenarioTitle = document.getElementById("title").value.trim()) {
+      const list = document.getElementById("scenarioNpcList");
+      const visibleRecords = records;
+      list.innerHTML = visibleRecords.map((npc, index) => {
+        const color = /^#[0-9a-fA-F]{6}$/.test(npc.themeColor || "") ? npc.themeColor : "#888888";
+        const image = npc.image?.startsWith("data:image/") ? `<img src="${escapeHtml(npc.image)}" alt="">` : "";
+        return `<article class="scenario-npc-card ${npc.secret ? "is-secret" : ""}" data-scenario-npc-id="${escapeHtml(npc.id)}">
+          <div class="scenario-npc-card-head"><strong>${npc.secret ? "秘匿NPC" : "登場NPC"} ${index + 1}${image ? ` · 画像あり` : ""}</strong><button class="button danger selected-npc-remove" type="button" data-remove-scenario-npc="${escapeHtml(npc.id)}">シナリオから外す</button></div>
+          ${image ? `<div class="npc-image" style="--npc-color:${color}">${image}</div>` : ""}
+          <div class="scenario-npc-fields">
+            <label>名前<input data-scenario-npc-field="name" maxlength="120" value="${escapeHtml(npc.fields.name)}" placeholder="NPCの名前"></label>
+            <label>制作者・作成者<input data-scenario-npc-field="creator" maxlength="100" value="${escapeHtml(npc.fields.creator)}" placeholder="制作者名"></label>
+            <label>メモ<textarea data-scenario-npc-field="memo" maxlength="5000" placeholder="NPCについてのメモ">${escapeHtml(npc.fields.memo)}</textarea></label>
+            <label class="scenario-npc-secret-toggle"><input type="checkbox" data-scenario-npc-secret ${npc.secret ? "checked" : ""}>秘匿NPC（非公開ビューのみ）</label>
+          </div>
+        </article>`;
+      }).join("");
+      if (!visibleRecords.length) list.innerHTML = `<p class="empty">このシナリオにはまだNPCがいません。</p>`;
+      const note = document.getElementById("unassignedNpcNote");
+      const embeddedIds = new Set(records.map(npc => npc.id));
+      const unassignedCount = npcs.filter(npc => !scenarios.some(item => item.npcs?.some(embedded => embedded.id === npc.id)) && !embeddedIds.has(npc.id)).length;
+      note.hidden = !unassignedCount;
+      note.textContent = unassignedCount ? `シナリオ未設定の既存NPCが ${unassignedCount} 人います。上の「既存NPCを選択」からこのシナリオへ取り込めます。` : "";
+      document.getElementById("npcPicker").hidden = !npcs.some(npc => !embeddedIds.has(npc.id));
+    }
+
+    function readScenarioNpcs() {
+      const scenario = getSelectedScenario();
+      const stored = associatedNpcs(scenario);
+      const records = [...document.querySelectorAll("#scenarioNpcList [data-scenario-npc-id]")].map(card => {
+        const id = card.dataset.scenarioNpcId;
+        const original = stored.find(npc => npc.id === id) || npcs.find(npc => npc.id === id) || {};
+        const fields = { ...(original.fields || {}) };
+        card.querySelectorAll("[data-scenario-npc-field]").forEach(input => {
+          fields[input.dataset.scenarioNpcField] = input.value.trim();
+        });
+        return normalizeScenarioNpc({ ...original, id, fields, secret: Boolean(card.querySelector("[data-scenario-npc-secret]")?.checked) }, document.getElementById("title").value.trim());
+      });
+      if (document.body.dataset.audienceMode === "public") {
+        records.push(...stored.filter(npc => npc.secret && !records.some(item => item.id === npc.id)));
+      }
+      return records;
+    }
+
+    function renderParentKps(parentKps = selectedParentKps) {
+      selectedParentKps = parentKps.filter(person => person && typeof person.id === "string").map(person => {
+        const profile = creatorProfiles.find(item => item.id === person.id);
+        return { id: person.id, name: profile?.name || person.name };
+      }).filter(person => person.id && person.name);
+      const selectedIds = new Set(selectedParentKps.map(person => person.id));
+      const select = document.getElementById("parentKpSelect");
+      const available = creatorProfiles.filter(profile => !selectedIds.has(profile.id));
+      select.innerHTML = `<option value="">制作者・作成者を選択</option>${available.map(profile =>
+        `<option value="${escapeHtml(profile.id)}">${escapeHtml(profile.name)}</option>`).join("")}`;
+      document.getElementById("addParentKpButton").disabled = available.length === 0;
+      document.getElementById("parentKpHelp").innerHTML = creatorProfiles.length
+        ? "1人目をKP、2人目以降をSKPとして表示します。"
+        : `選択肢がありません。<a href="TRPG制作者管理.html">制作者・作成者のプロフィール</a>を先に登録してください。`;
+      document.getElementById("parentKpList").innerHTML = selectedParentKps.map((person, index) =>
+        `<div class="parent-kp-item"><span><span class="parent-kp-role">${index === 0 ? "KP" : "SKP"}</span>　${escapeHtml(person.name)}</span><button class="button selected-npc-remove" type="button" data-remove-parent-kp="${escapeHtml(person.id)}" aria-label="${escapeHtml(person.name)}を親KP様から削除">削除</button></div>`
+      ).join("");
+    }
+
+    function renderParentKpPreview(parentKps) {
+      const preview = document.getElementById("previewParentKps");
+      preview.innerHTML = parentKps.map((person, index) =>
+        `<div class="parent-kp-item"><span class="parent-kp-role">${index === 0 ? "KP" : "SKP"}</span><span>${escapeHtml(person.name)}</span></div>`
+      ).join("");
+      preview.hidden = parentKps.length === 0;
+    }
+
+    function renderScenarioList() {
+      const query = document.getElementById("search").value.trim().toLocaleLowerCase("ja");
+      const filtered = [...scenarios]
+        .filter(item => item.title.toLocaleLowerCase("ja").includes(query))
+        .sort((left, right) => left.title.localeCompare(right.title, "ja"));
+      document.getElementById("count").textContent = `${scenarios.length} 件`;
+      if (!filtered.length) {
+        scenarioList.innerHTML = `<p class="empty">${scenarios.length ? "検索条件に合うシナリオはありません。" : "シナリオはまだありません。ここで追加するか、NPC登録またはキャラクター書庫でシナリオを選択してください。"}</p>`;
+        return;
+      }
+      scenarioList.innerHTML = filtered.map(item => {
+        const visibleCount = associatedNpcs(item).filter(npc => !npc.secret).length;
+        return `<div class="scenario-row" data-id="${escapeHtml(item.id)}" aria-current="${item.id === selectedId}"><button class="scenario-select" type="button" data-action="select"><strong>${escapeHtml(item.title)}</strong><span>${visibleCount} 人のNPC</span></button><button class="button danger scenario-delete" type="button" data-action="delete" aria-label="${escapeHtml(item.title)}を削除">削除</button></div>`;
+      }).join("");
+    }
+
+    function renderNpcOptions(scenario, records = scenario?.npcs || []) {
+      const select = document.getElementById("npcSelect");
+      const selected = new Set(records.map(npc => npc.id));
+      const available = npcs.filter(npc => !selected.has(npc.id));
+      select.innerHTML = `<option value="">既存NPCを選択（任意）</option>${available.map(npc => {
+        const name = npc.fields?.name || "名前未設定";
+        const detail = npc.fields?.scenario ? `（${npc.fields.scenario}）` : "";
+        return `<option value="${escapeHtml(npc.id)}">${escapeHtml(name + detail)}</option>`;
+      }).join("")}`;
+      document.getElementById("npcPicker").hidden = available.length === 0;
+    }
+
+    function renderHandouts(handouts = []) {
+      const list = document.getElementById("handoutList");
+      const characterOptions = characters.map(character => {
+        const id = `character:${character.id}`;
+        return `<option value="${escapeHtml(id)}">${escapeHtml(character.fields?.name || "名前未設定")}</option>`;
+      }).join("");
+      const otherCharacterOptions = otherCharacters.map(character => {
+        const id = `other:${character.id}`;
+        return `<option value="${escapeHtml(id)}">${escapeHtml(character.name || "名前未設定")}</option>`;
+      }).join("");
+      list.innerHTML = handouts.map((handout, index) => `
+        <article class="handout-card" data-handout-index="${index}" data-handout-id="${escapeHtml(handout.id || `legacy-${index}`)}">
+          <div class="handout-heading">
+            <h4>ハンドアウト</h4>
+            <button class="button danger" type="button" data-remove-handout="${index}" aria-label="ハンドアウトを削除">削除</button>
+          </div>
+          <div class="field">
+            <label for="handout-title-${index}">名称</label>
+            <input id="handout-title-${index}" data-handout-title maxlength="160" placeholder="名称を自由に入力" value="${escapeHtml(handout.title || "")}">
+          </div>
+          <div class="field">
+            <label for="handout-target-${index}">該当キャラクター</label>
+            <select class="npc-select" id="handout-target-${index}" data-handout-target>
+              <option value="">選択しない</option>
+              ${characterOptions ? `<optgroup label="キャラクター書庫">${characterOptions}</optgroup>` : ""}
+              ${otherCharacterOptions ? `<optgroup label="他キャラ図書館">${otherCharacterOptions}</optgroup>` : ""}
+            </select>
+          </div>
+          <div class="field">
+            <label for="handout-overview-${index}">概要</label>
+            <textarea id="handout-overview-${index}" data-handout-overview maxlength="5000" placeholder="ハンドアウトの概要">${escapeHtml(handout.overview || "")}</textarea>
+          </div>
+          <div class="field handout-secret-content">
+            <label for="handout-content-${index}">内容（秘匿）</label>
+            <textarea id="handout-content-${index}" data-handout-content maxlength="10000" placeholder="非公開ビューで表示するハンドアウトの内容">${escapeHtml(handout.content || "")}</textarea>
+          </div>
+        </article>`).join("");
+      handouts.forEach((handout, index) => {
+        const target = document.getElementById(`handout-target-${index}`);
+        if (!handout.targetId) return;
+        if (!target.querySelector(`option[value="${CSS.escape(handout.targetId)}"]`)) {
+          const source = handout.targetId.slice(0, handout.targetId.indexOf(":"));
+          const missingLabel = source === "other" ? "削除済みの他キャラ図書館の人物" : source === "npc" ? "NPC登録の既存データ" : "削除済みキャラクター書庫の人物";
+          target.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(handout.targetId)}">${missingLabel}</option>`);
+        }
+        target.value = handout.targetId;
+      });
+    }
+
+    function readSecretContent() {
+      return {
+        overview: document.getElementById("privateOverview").value.trim(),
+        synopsis: document.getElementById("synopsis").value.trim(),
+        ending: document.getElementById("ending").value.trim(),
+        conversationLogs: readConversationLogs(),
+      };
+    }
+
+    function readConversationLogs() {
+      return [...document.querySelectorAll(".conversation-log-item[data-log-index]")].map(item => {
+        const index = Number(item.dataset.logIndex);
+        return conversationLogs[index];
+      }).filter(log => log && typeof log.name === "string" && typeof log.content === "string");
+    }
+
+    let conversationLogs = [];
+
+    function renderConversationLogs(logs = []) {
+      conversationLogs = logs.filter(log => log && typeof log.name === "string" && typeof log.content === "string");
+      const list = document.getElementById("conversationLogList");
+      if (!conversationLogs.length) {
+        list.innerHTML = `<p class="empty">会話ログはまだ追加されていません。</p>`;
+        return;
+      }
+      list.innerHTML = conversationLogs.map((log, index) => `
+        <div class="conversation-log-item" data-log-index="${index}">
+          <span class="conversation-log-name">${escapeHtml(log.name)}</span>
+          <span class="conversation-log-actions">
+            <button class="button" type="button" data-download-conversation-log="${index}">ダウンロード</button>
+            <button class="button danger" type="button" data-remove-conversation-log="${index}" aria-label="${escapeHtml(log.name)}を削除">削除</button>
+          </span>
+        </div>`).join("");
+    }
+
+    function renderConversationLogPreview(logs) {
+      const section = document.getElementById("conversationLogsPreview");
+      const list = document.getElementById("previewConversationLogs");
+      section.hidden = !logs.length;
+      list.innerHTML = logs.map((log, index) => `
+        <div class="conversation-log-item">
+          <span class="conversation-log-name">${escapeHtml(log.name)}</span>
+          <button class="button" type="button" data-download-conversation-log="${index}">ダウンロード</button>
+        </div>`).join("");
+    }
+
+    function downloadConversationLog(index) {
+      const log = readSecretContent().conversationLogs[index];
+      if (!log) {
+        setStatus("ダウンロードする会話ログが見つかりません", true);
+        return;
+      }
+      const blob = new Blob([log.content], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = log.name;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function readHandouts() {
+      return [...document.querySelectorAll(".handout-card")].map(card => ({
+        id: card.dataset.handoutId,
+        title: card.querySelector("[data-handout-title]").value.trim(),
+        targetId: card.querySelector("[data-handout-target]").value,
+        overview: card.querySelector("[data-handout-overview]").value.trim(),
+        content: card.querySelector("[data-handout-content]").value.trim(),
+      }));
+    }
+
+    function renderSecretPreview(secret) {
+      const preview = document.getElementById("secretPreview");
+      const privateView = document.body.dataset.audienceMode !== "public";
+      document.getElementById("secretFieldset").hidden = !privateView;
+      document.querySelectorAll(".handout-secret-content").forEach(field => {
+        field.hidden = !privateView;
+      });
+      preview.hidden = !privateView;
+      document.getElementById("privateNpcPreview").hidden = !privateView;
+      if (!privateView) {
+        document.getElementById("previewPrivateContent").replaceChildren();
+        document.getElementById("previewPrivateNpcs").replaceChildren();
+        return;
+      }
+
+      const sections = [
+        ["概要", secret.overview],
+        ["あらすじ", secret.synopsis],
+        ["結末", secret.ending],
+      ].filter(([, content]) => content);
+      document.getElementById("previewPrivateContent").innerHTML = sections.length
+        ? sections.map(([heading, content]) => `<div class="secret-preview-section"><h4>${escapeHtml(heading)}</h4><p>${escapeHtml(content)}</p></div>`).join("")
+        : `<p class="empty">秘匿内容はまだありません。</p>`;
+      renderConversationLogPreview(secret.conversationLogs || []);
+    }
+
+    function renderHandoutPreview(handouts) {
+      const preview = document.getElementById("handoutPreview");
+      const list = document.getElementById("previewHandouts");
+      const privateView = document.body.dataset.audienceMode !== "public";
+      if (!handouts.length) {
+        preview.hidden = true;
+        list.replaceChildren();
+        return;
+      }
+      document.getElementById("handoutFieldset").hidden = false;
+      preview.hidden = false;
+      list.innerHTML = handouts.map(handout => {
+        const title = handout.title || "ハンドアウト";
+        const targetId = handout.targetId || "";
+        const target = targetId.startsWith("character:")
+          ? characters.find(character => character.id === targetId.slice("character:".length))
+          : targetId.startsWith("other:")
+            ? otherCharacters.find(character => character.id === targetId.slice("other:".length))
+          : targetId.startsWith("npc:")
+            ? associatedNpcs(getSelectedScenario()).find(npc => npc.id === targetId.slice("npc:".length)) || npcs.find(npc => npc.id === targetId.slice("npc:".length))
+            : null;
+        const targetName = target
+          ? target.fields?.name || target.name || "名前未設定"
+          : targetId.startsWith("character:") || targetId.startsWith("other:") || targetId.startsWith("npc:") ? "関連先なし" : "";
+        const heading = targetName ? `${title}（${targetName}）` : title;
+        return `<article class="handout-preview-card"><h4>${escapeHtml(heading)}</h4>${handout.overview ? `<p><strong>概要</strong><br>${escapeHtml(handout.overview)}</p>` : ""}${privateView && handout.content ? `<p><strong>内容（秘匿）</strong><br>${escapeHtml(handout.content)}</p>` : ""}</article>`;
+      }).join("");
+    }
+
+    function renderPrivateNpcPreview(npcRecords) {
+      const list = document.getElementById("previewPrivateNpcs");
+      if (document.body.dataset.audienceMode === "public") {
+        list.replaceChildren();
+        return;
+      }
+      const selectedNpcs = npcRecords.filter(npc => npc.secret);
+      if (!selectedNpcs.length) {
+        list.innerHTML = `<p class="empty">秘匿NPCは選択されていません。</p>`;
+        return;
+      }
+      list.innerHTML = selectedNpcs.map(npc => {
+        const detail = [npc.fields?.creator, npc.fields?.memo].filter(Boolean).join(" / ");
+        return `<article class="selected-private-npc"><div><strong>${escapeHtml(npc.fields?.name || "名前未設定")}</strong>${detail ? `<p class="npc-detail">${escapeHtml(detail)}</p>` : ""}</div></article>`;
+      }).join("");
+    }
+
+    function renderPreview(scenario, npcList = associatedNpcs(scenario)) {
+      const visibleNpcList = npcList.filter(npc => !npc.secret);
+      document.getElementById("previewTitle").textContent = scenario?.title || "シナリオを選択してください";
+      document.getElementById("previewOverview").textContent = scenario?.overview || "";
+      const urlElement = document.getElementById("previewUrl");
+      urlElement.hidden = true;
+      urlElement.removeAttribute("href");
+      if (scenario?.url) {
+        try {
+          const url = new URL(scenario.url);
+          if (url.protocol === "https:" || url.protocol === "http:") {
+            urlElement.href = url.href;
+            urlElement.textContent = scenario.url;
+            urlElement.hidden = false;
+          }
+        } catch {}
+      }
+      const diagnosisUrlElement = document.getElementById("previewCharacterDiagnosisUrl");
+      diagnosisUrlElement.hidden = true;
+      diagnosisUrlElement.removeAttribute("href");
+      if (scenario?.characterDiagnosisUrl) {
+        try {
+          const url = new URL(scenario.characterDiagnosisUrl);
+          if (url.protocol === "https:" || url.protocol === "http:") {
+            diagnosisUrlElement.href = url.href;
+            diagnosisUrlElement.hidden = false;
+          }
+        } catch {}
+      }
+      const previewNpcs = document.getElementById("previewNpcs");
+      if (!visibleNpcList.length) {
+        previewNpcs.innerHTML = `<p class="empty">${npcList.some(npc => npc.secret) ? "公開できる登場NPCはいません。" : "このシナリオにはまだNPCがいません。"}</p>`;
+      } else previewNpcs.innerHTML = visibleNpcList.map(npc => {
+        const name = npc.fields?.name || "名前未設定";
+        const color = /^#[0-9a-fA-F]{6}$/.test(npc.themeColor || "") ? npc.themeColor : "#888888";
+        const image = typeof npc.image === "string" && npc.image.startsWith("data:image/") ? `<img src="${escapeHtml(npc.image)}" alt="">` : "画像なし";
+        const detail = [npc.fields?.memo].filter(Boolean).join(" / ");
+        return `<article class="npc-card"><div class="npc-image" style="--npc-color:${color}">${image}</div><div><h4 class="npc-name">${escapeHtml(name)}</h4><p class="npc-detail">${escapeHtml(detail || npc.fields?.scenario || "NPC")}</p></div></article>`;
+      }).join("");
+      renderPrivateNpcPreview(npcList);
+    }
+
+    function renderForm(scenario) {
+      document.getElementById("formTitle").textContent = scenario ? "シナリオを編集" : "新しいシナリオ";
+      document.getElementById("saveButton").textContent = scenario ? "変更を保存" : "シナリオを保存";
+      document.getElementById("title").value = scenario?.title || "";
+      document.getElementById("overview").value = scenario?.overview || "";
+      document.getElementById("url").value = scenario?.url || "";
+      document.getElementById("characterDiagnosisUrl").value = scenario?.characterDiagnosisUrl || "";
+      renderParentKps(Array.isArray(scenario?.parentKps) ? scenario.parentKps : []);
+      const privateContent = scenario?.privateContent || {};
+      document.getElementById("privateOverview").value = privateContent.overview || "";
+      document.getElementById("synopsis").value = privateContent.synopsis || "";
+      document.getElementById("ending").value = privateContent.ending || "";
+      renderConversationLogs(Array.isArray(privateContent.conversationLogs) ? privateContent.conversationLogs : []);
+      const handouts = Array.isArray(scenario?.handouts)
+        ? scenario.handouts
+        : Array.isArray(privateContent.handouts) ? privateContent.handouts : [];
+      renderHandouts(handouts);
+      const scenarioNpcs = associatedNpcs(scenario).map(npc => normalizeScenarioNpc(npc, scenario?.title || ""));
+      renderScenarioNpcs(scenarioNpcs, scenario?.title || "");
+      renderNpcOptions(scenario);
+    }
+
+    function renderAll() {
+      const scenario = getSelectedScenario();
+      renderScenarioList();
+      renderForm(scenario);
+      updatePreviewFromForm();
+    }
+
+    function updatePreviewFromForm() {
+      const scenario = {
+        title: document.getElementById("title").value.trim(),
+        overview: document.getElementById("overview").value.trim(),
+        url: document.getElementById("url").value.trim(),
+        characterDiagnosisUrl: document.getElementById("characterDiagnosisUrl").value.trim(),
+        parentKps: selectedParentKps,
+      };
+      const scenarioNpcs = readScenarioNpcs();
+      renderPreview(scenario, scenarioNpcs);
+      renderParentKpPreview(selectedParentKps);
+      renderHandoutPreview(readHandouts());
+      renderSecretPreview(readSecretContent());
+    }
+
+    function persistScenarios(nextScenarios = scenarios, nextDeletedTitles = deletedScenarioTitles) {
+      const previousScenarios = localStorage.getItem(SCENARIO_STORAGE_KEY);
+      const previousOptions = localStorage.getItem(SCENARIO_OPTIONS_KEY);
+      const previousDeletedTitles = localStorage.getItem(DELETED_SCENARIOS_KEY);
+      try {
+        const titles = [...new Set(nextScenarios.map(item => item.title.trim()).filter(Boolean))];
+        localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify(nextScenarios));
+        localStorage.setItem(SCENARIO_OPTIONS_KEY, JSON.stringify(titles));
+        localStorage.setItem(DELETED_SCENARIOS_KEY, JSON.stringify([...nextDeletedTitles]));
+        return true;
+      } catch (error) {
+        try {
+          if (previousScenarios === null) localStorage.removeItem(SCENARIO_STORAGE_KEY);
+          else localStorage.setItem(SCENARIO_STORAGE_KEY, previousScenarios);
+          if (previousOptions === null) localStorage.removeItem(SCENARIO_OPTIONS_KEY);
+          else localStorage.setItem(SCENARIO_OPTIONS_KEY, previousOptions);
+          if (previousDeletedTitles === null) localStorage.removeItem(DELETED_SCENARIOS_KEY);
+          else localStorage.setItem(DELETED_SCENARIOS_KEY, previousDeletedTitles);
+          setStatus(`保存できませんでした: ${error.message}`, true);
+        } catch (rollbackError) {
+          setStatus(`保存に失敗し、元のデータへ戻せませんでした: ${error.message} / ${rollbackError.message}`, true);
+        }
+        return false;
+      }
+    }
+
+    scenarioList.addEventListener("click", event => {
+      const action = event.target.closest("[data-action]")?.dataset.action;
+      const row = event.target.closest(".scenario-row");
+      if (!action || !row) return;
+      const scenario = scenarios.find(item => item.id === row.dataset.id);
+      if (!scenario) return;
+      if (action === "select") {
+        selectedId = scenario.id;
+        renderAll();
+        return;
+      }
+      if (action !== "delete") return;
+      if (!window.confirm(`「${scenario.title}」と、そのシナリオ内に保存された概要・ハンドアウト・秘匿内容・会話ログ・NPCデータを削除しますか？\nこの操作は取り消せません。既存NPCからコピーした元データはNPC登録側に残ります。`)) return;
+      const nextScenarios = scenarios.filter(item => item.id !== scenario.id);
+      const nextDeletedTitles = new Set(deletedScenarioTitles);
+      nextDeletedTitles.add(scenario.title);
+      if (!persistScenarios(nextScenarios, nextDeletedTitles)) return;
+      scenarios = nextScenarios;
+      deletedScenarioTitles = nextDeletedTitles;
+      if (selectedId === scenario.id) selectedId = null;
+      renderAll();
+      setStatus(`「${scenario.title}」をシナリオ一覧から削除しました`);
+    });
+
+    document.getElementById("search").addEventListener("input", renderScenarioList);
+    document.getElementById("newButton").addEventListener("click", () => {
+      selectedId = null;
+      renderAll();
+      document.getElementById("title").focus();
+      setStatus("新しいシナリオを入力してください");
+    });
+
+    document.getElementById("addParentKpButton").addEventListener("click", () => {
+      const select = document.getElementById("parentKpSelect");
+      const profile = creatorProfiles.find(item => item.id === select.value);
+      if (!profile) {
+        select.focus();
+        return;
+      }
+      renderParentKps([...selectedParentKps, { id: profile.id, name: profile.name }]);
+      updatePreviewFromForm();
+    });
+    document.getElementById("parentKpList").addEventListener("click", event => {
+      const button = event.target.closest("[data-remove-parent-kp]");
+      if (!button) return;
+      renderParentKps(selectedParentKps.filter(person => person.id !== button.dataset.removeParentKp));
+      updatePreviewFromForm();
+    });
+
+    document.getElementById("addNpcButton").addEventListener("click", () => {
+      const select = document.getElementById("npcSelect");
+      const existingNpc = npcs.find(npc => npc.id === select.value);
+      if (!existingNpc) {
+        select.focus();
+        return;
+      }
+      const records = readScenarioNpcs();
+      if (records.some(npc => npc.id === existingNpc.id)) return;
+      records.push(normalizeScenarioNpc(existingNpc, document.getElementById("title").value.trim()));
+      renderScenarioNpcs(records);
+      renderNpcOptions(getSelectedScenario(), records);
+      updatePreviewFromForm();
+    });
+    document.getElementById("addScenarioNpcButton").addEventListener("click", () => {
+      const records = readScenarioNpcs();
+      records.push(normalizeScenarioNpc({ id: crypto.randomUUID(), fields: {}, secret: false }, document.getElementById("title").value.trim()));
+      renderScenarioNpcs(records);
+      renderNpcOptions(getSelectedScenario(), records);
+      updatePreviewFromForm();
+      document.querySelector("#scenarioNpcList [data-scenario-npc-id]:last-of-type [data-scenario-npc-field='name']")?.focus();
+    });
+    document.getElementById("scenarioNpcList").addEventListener("input", event => {
+      if (event.target.matches("[data-scenario-npc-field]")) updatePreviewFromForm();
+    });
+    document.getElementById("scenarioNpcList").addEventListener("change", event => {
+      if (!event.target.matches("[data-scenario-npc-secret]")) return;
+      const records = readScenarioNpcs();
+      renderScenarioNpcs(records);
+      renderNpcOptions(getSelectedScenario(), records);
+      updatePreviewFromForm();
+    });
+    document.getElementById("scenarioNpcList").addEventListener("click", event => {
+      const button = event.target.closest("[data-remove-scenario-npc]");
+      if (!button) return;
+      const records = readScenarioNpcs().filter(npc => npc.id !== button.dataset.removeScenarioNpc);
+      renderScenarioNpcs(records);
+      renderNpcOptions(getSelectedScenario(), records);
+      updatePreviewFromForm();
+    });
+    document.getElementById("addHandoutButton").addEventListener("click", () => {
+      const handouts = readHandouts();
+      handouts.push({ id: crypto.randomUUID(), title: "", targetId: "", overview: "", content: "" });
+      renderHandouts(handouts);
+      updatePreviewFromForm();
+    });
+    document.getElementById("handoutList").addEventListener("click", event => {
+      const button = event.target.closest("[data-remove-handout]");
+      if (!button) return;
+      const handouts = readHandouts();
+      handouts.splice(Number(button.dataset.removeHandout), 1);
+      renderHandouts(handouts);
+      updatePreviewFromForm();
+    });
+    document.getElementById("conversationLogFiles").addEventListener("change", async event => {
+      const input = event.target;
+      const files = [...input.files];
+      input.value = "";
+      if (!files.length) return;
+      const invalidFile = files.find(file => !/\.html?$/i.test(file.name));
+      if (invalidFile) {
+        setStatus(`HTMLファイルではありません: ${invalidFile.name}`, true);
+        return;
+      }
+      try {
+        const addedLogs = await Promise.all(files.map(async file => ({
+          name: file.name,
+          content: await file.text(),
+        })));
+        renderConversationLogs([...readSecretContent().conversationLogs, ...addedLogs]);
+        updatePreviewFromForm();
+        setStatus(`${addedLogs.length} 件の会話ログを追加しました。シナリオを保存してください`);
+      } catch (error) {
+        setStatus(`会話ログを読み込めませんでした: ${error.message}`, true);
+      }
+    });
+    document.addEventListener("click", event => {
+      const downloadButton = event.target.closest("[data-download-conversation-log]");
+      if (downloadButton) {
+        downloadConversationLog(Number(downloadButton.dataset.downloadConversationLog));
+        return;
+      }
+      const removeButton = event.target.closest("[data-remove-conversation-log]");
+      if (!removeButton) return;
+      const logs = readSecretContent().conversationLogs;
+      logs.splice(Number(removeButton.dataset.removeConversationLog), 1);
+      renderConversationLogs(logs);
+      updatePreviewFromForm();
+    });
+    scenarioForm.addEventListener("input", event => {
+      if (["title", "overview", "url", "characterDiagnosisUrl", "privateOverview", "synopsis", "ending"].includes(event.target.id)
+        || event.target.matches("[data-handout-title], [data-handout-overview], [data-handout-content]")) updatePreviewFromForm();
+    });
+    document.getElementById("handoutList").addEventListener("change", event => {
+      if (event.target.matches("[data-handout-target]")) updatePreviewFromForm();
+    });
+
+    scenarioForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const title = document.getElementById("title").value.trim();
+      const overview = document.getElementById("overview").value.trim();
+      const rawUrl = document.getElementById("url").value.trim();
+      if (!title) {
+        document.getElementById("title").focus();
+        return;
+      }
+      let url = "";
+      if (rawUrl) {
+        try {
+          const parsed = new URL(rawUrl);
+          if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error("URLはhttpまたはhttpsで入力してください");
+          url = parsed.href;
+        } catch (error) {
+          setStatus(error.message === "Invalid URL" ? "URLの形式を確認してください" : error.message, true);
+          document.getElementById("url").focus();
+          return;
+        }
+      }
+      const rawCharacterDiagnosisUrl = document.getElementById("characterDiagnosisUrl").value.trim();
+      let characterDiagnosisUrl = "";
+      if (rawCharacterDiagnosisUrl) {
+        try {
+          const parsed = new URL(rawCharacterDiagnosisUrl);
+          if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error("キャラクター診断URLはhttpまたはhttpsで入力してください");
+          characterDiagnosisUrl = parsed.href;
+        } catch (error) {
+          setStatus(error.message === "Invalid URL" ? "キャラクター診断URLの形式を確認してください" : error.message, true);
+          document.getElementById("characterDiagnosisUrl").focus();
+          return;
+        }
+      }
+      const duplicate = scenarios.find(item => item.title === title && item.id !== selectedId);
+      if (duplicate) {
+        setStatus("同じタイトルのシナリオがすでにあります。一覧から選択して編集してください", true);
+        return;
+      }
+      const existing = getSelectedScenario();
+      const now = Date.now();
+      const scenarioNpcs = readScenarioNpcs().map(npc => ({
+        ...normalizeScenarioNpc(npc, title),
+        createdAt: Number(npc.createdAt) || now,
+        updatedAt: now,
+      }));
+      const scenario = {
+        id: existing?.id || crypto.randomUUID(),
+        title,
+        overview,
+        url,
+        characterDiagnosisUrl,
+        parentKps: [...selectedParentKps],
+        handouts: readHandouts(),
+        privateContent: readSecretContent(),
+        npcs: scenarioNpcs,
+        npcIds: scenarioNpcs.filter(npc => !npc.secret).map(npc => npc.id),
+        privateNpcIds: scenarioNpcs.filter(npc => npc.secret).map(npc => npc.id),
+        privateCharacterIds: existing?.privateCharacterIds || [],
+        updatedAt: Date.now(),
+      };
+      const nextScenarios = existing
+        ? scenarios.map(item => item.id === existing.id ? scenario : item)
+        : [...scenarios, scenario];
+      const nextDeletedTitles = new Set(deletedScenarioTitles);
+      nextDeletedTitles.delete(title);
+      if (!persistScenarios(nextScenarios, nextDeletedTitles)) return;
+      let npcSyncFailed = false;
+      try {
+        await writeNpcLibraryRecords(scenarioNpcs);
+        npcs = await readExistingStore(NPC_DATABASE_NAME, "npcs");
+        localStorage.setItem(NPC_LIBRARY_UPDATED_KEY, String(Date.now()));
+      } catch (error) {
+        npcSyncFailed = true;
+        setStatus(`シナリオは保存しましたが、NPC登録への同期に失敗しました: ${error.message}`, true);
+      }
+      scenarios = nextScenarios;
+      deletedScenarioTitles = nextDeletedTitles;
+      selectedId = scenario.id;
+      renderAll();
+      if (npcSyncFailed) setStatus("シナリオは保存しましたが、NPC登録への同期に失敗しました", true);
+      else setStatus("シナリオとNPC登録の両方に保存しました");
+    });
+
+    const audienceObserver = new MutationObserver(() => updatePreviewFromForm());
+    audienceObserver.observe(document.body, { attributes: true, attributeFilter: ["data-audience-mode"] });
+    window.addEventListener("audience-mode-change", () => {
+      renderScenarioList();
+      updatePreviewFromForm();
+    });
+    document.querySelectorAll("[data-audience-mode]").forEach(button => {
+      button.addEventListener("click", () => window.setTimeout(updatePreviewFromForm, 0));
+    });
+
+    window.addEventListener("storage", event => {
+      if (event.key !== SCENARIO_STORAGE_KEY && event.key !== SCENARIO_OPTIONS_KEY && event.key !== DELETED_SCENARIOS_KEY && event.key !== CREATOR_PROFILES_KEY && event.key !== NPC_LIBRARY_UPDATED_KEY && event.key !== "trpg-character-scenarios-updated") return;
+      loadData();
+    });
+
+    loadData();
+  </script>
+  <script src="view-mode.js"></script>
+</body>
+</html>
