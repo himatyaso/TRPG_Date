@@ -197,6 +197,12 @@ localStorageデータ,NPC同期通知,localStorage,trpg-npc-library-updated,stri
 読み取り連携,シナリオ管理・キャラクター書庫・他キャラ図書館,localStorage,trpg-scenarios,read-only,scenario.handouts[],object array,共通のハンドアウト記録を対象キャラクターIDで照合。
 ダウンロード機能,キャラクター書庫,JSONファイル,利用者が指定した保存先,export payload,app/version/character,object fields,書き出しJSONの最上位項目。appはTRPG Character Library。versionは1。characterは選択中のキャラクター。
 ダウンロード機能,シナリオ管理,HTMLファイル,利用者が指定した保存先,conversationLogs[],content,string,選択した会話ログ本文をHTMLファイルとして個別にダウンロード可能。
-未対応,全体,なし,なし,全データ一括バックアップ/復元,機能状態,未実装,シナリオ・NPC・他キャラ図書館・記憶・プロフィール等をまとめた一括CSV/JSONの書き出し・復元機能はありません。
+連携データ,全ページ,JSONファイル,利用者が選択した保存先,format/version/localStorage/indexedDB,JSON object,TRPGデータファイル,右下の「JSONデータを接続」から読み込み・統合・新規作成。ページの保存処理後に選択ファイルへ同期。
+連携データ項目,全ページ,JSONファイル,利用者が選択した保存先,format,string,trpg-data-file,データファイル形式識別子。
+連携データ項目,全ページ,JSONファイル,利用者が選択した保存先,version,number,1,データファイル形式バージョン。
+連携データ項目,全ページ,JSONファイル,利用者が選択した保存先,localStorage,object keyed by storage key,string values,アプリで使用するlocalStorageキーとその値を保持。
+連携データ項目,全ページ,JSONファイル,利用者が選択した保存先,indexedDB,object keyed by database name,array,キャラクター書庫charactersとNPC登録npcsのレコード一覧。
+IndexedDBデータ,JSONファイル接続,IndexedDB,trpg-json-file-link / handles,object store,active,FileSystemFileHandle,ブラウザーからJSONへ再接続するためのファイルハンドル。実データ本体ではなく、ブラウザー／ページの場所ごとに選択し直しが必要な場合があります。
 注意,全体,,,,,,画像はデータURL文字列としてレコードに含まれ、CSVへ単純出力すると非常に大きくなり、画像の再利用にも適しません。CSVは項目・保存構造の一覧であり、実データの一括出力ではありません。
 注意,全体,,,,,,秘匿情報はlocalStorage/IndexedDB内に通常データと同じく保存されています。CSVやJSONを共有する前に、秘匿情報・個人情報・画像の有無を確認してください。
+注意,JSON連携,JSONファイル,利用者が選択した保存先,,,,JSONには秘匿情報、画像、HTML会話ログ本文も含まれます。共有前に内容を確認してください。同じJSONを複数画面・PCで同時編集すると更新が競合する場合があります。
